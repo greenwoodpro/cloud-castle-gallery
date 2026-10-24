@@ -1,0 +1,3 @@
+[
+ {"js":"Array.from(document.querySelectorAll(\".lbl\")).filter(e=>!e.classList.contains(\"hide\")).map(e=>[e.textContent.slice(0,8),e.className])","dump":true,"ui":false,"frames":3,"name":"w2"}
+]

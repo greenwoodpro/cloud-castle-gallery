@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>云端城堡 · 25 个模型的小王子浮空城堡</title>
+<meta name="description" content="一条提示词、25 个模型、25 座浮空城堡。three.js 中世纪欧洲城堡的跨平台横向测评，含在线预览与完整工程源码。">
+<style>
+:root{
+  --paper:#faf6ee;
+  --paper-2:#f3ecdf;
+  --ink:#312b26;
+  --ink-2:#5d5348;
+  --ink-3:#8b7f70;
+  --line:#e0d5c2;
+  --gold:#b8893f;
+  --rose:#b5625f;
+  --sky:#5f7f95;
+  --moss:#6f8460;
+  --shadow:0 1px 2px rgba(70,50,20,.05), 0 8px 24px -12px rgba(70,50,20,.18);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(1200px 600px at 12% -8%, rgba(214,183,143,.22), transparent 62%),
+    radial-gradient(900px 520px at 92% 4%, rgba(146,170,186,.16), transparent 60%);
+  background-repeat:no-repeat;
+}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.serif{font-family:"Noto Serif SC","Songti SC",Georgia,"Times New Roman",serif}
+
+/* ---------- header ---------- */
+header.top{display:flex;align-items:center;justify-content:space-between;padding:22px 0 0}
+.brand{display:flex;align-items:center;gap:10px;font-size:13px;letter-spacing:.14em;color:var(--ink-3)}
+.brand svg{width:22px;height:22px}
+.top nav{display:flex;gap:18px;font-size:13px;color:var(--ink-2)}
+.top nav a{border-bottom:1px solid transparent;padding-bottom:2px}
+.top nav a:hover{border-color:var(--gold);color:var(--ink)}
+
+/* ---------- hero ---------- */
+.hero{padding:44px 0 26px;position:relative}
+.hero .kicker{font-size:12px;letter-spacing:.32em;color:var(--gold);text-transform:uppercase}
+.hero h1{font-family:"Noto Serif SC","Songti SC",Georgia,serif;
+  font-size:clamp(34px,5.2vw,58px);line-height:1.12;font-weight:600;margin:14px 0 0;letter-spacing:.01em}
+.hero h1 em{font-style:normal;color:var(--rose)}
+.hero p.lede{max-width:640px;margin:18px 0 0;color:var(--ink-2);font-size:15.5px}
+.stats{display:flex;flex-wrap:wrap;gap:34px;margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}
+.stat b{display:block;font-family:"Noto Serif SC",Georgia,serif;font-size:26px;font-weight:600;line-height:1.2}
+.stat span{font-size:12px;color:var(--ink-3);letter-spacing:.08em}
+
+/* ---------- controls ---------- */
+.controls{position:sticky;top:0;z-index:30;margin-top:10px;padding:14px 0 12px;
+  background:linear-gradient(180deg,rgba(250,246,238,.97) 62%,rgba(250,246,238,.86) 100%);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.ctrl-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.search{position:relative;flex:1 1 300px;min-width:220px}
+.search input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--line);border-radius:999px;
+  background:#fffdf8;font-size:14px;color:var(--ink);outline:none;transition:.18s}
+.search input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,137,63,.12)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-3)}
+.search kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--ink-3);
+  border:1px solid var(--line);border-radius:4px;padding:1px 5px;background:#fff}
+select{padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:#fffdf8;font-size:13px;
+  color:var(--ink-2);outline:none;cursor:pointer;font-family:inherit}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.chips .lbl{font-size:11px;letter-spacing:.14em;color:var(--ink-3);margin-right:2px}
+.chip{border:1px solid var(--line);background:#fffdf8;color:var(--ink-2);font-size:12.5px;
+  padding:5px 12px;border-radius:999px;cursor:pointer;transition:.15s;font-family:inherit;line-height:1.4}
+.chip:hover{border-color:var(--gold);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#faf6ee}
+.chip .n{opacity:.55;margin-left:4px;font-size:11px}
+.count{font-size:12px;color:var(--ink-3);margin-left:auto;white-space:nowrap}
+.clear{border:none;background:none;color:var(--gold);font-size:12px;cursor:pointer;text-decoration:underline;padding:0}
+
+/* ---------- grid ---------- */
+main{padding:26px 0 60px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:22px}
+.card{background:#fffdf8;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:var(--shadow);transition:.2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(70,50,20,.05),0 18px 36px -18px rgba(70,50,20,.32)}
+.thumb{position:relative;display:block;aspect-ratio:16/9;background:linear-gradient(160deg,#efe6d6,#e3e9ec);overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:.4s}
+.card:hover .thumb img{transform:scale(1.03)}
+.thumb .play{position:absolute;right:10px;bottom:10px;background:rgba(38,32,26,.72);color:#fdf8ee;
+  font-size:11.5px;letter-spacing:.06em;padding:5px 11px;border-radius:999px;backdrop-filter:blur(4px)}
+.thumb .noimg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink-3);font-size:12px}
+.body{padding:15px 16px 16px;display:flex;flex-direction:column;gap:9px;flex:1}
+.card h3{font-family:"Noto Serif SC",Georgia,serif;font-size:18.5px;font-weight:600;margin:0;line-height:1.3}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--ink-2)}
+.badge{padding:2px 8px;border-radius:5px;font-size:11px;letter-spacing:.03em;white-space:nowrap}
+.b-v0{background:#eef1f5;color:#4a627a}
+.b-wb{background:#eaf0e9;color:#4e6a45}
+.b-oc{background:#f2ece2;color:#7c6034}
+.b-trae{background:#f3e9ee;color:#8a5468}
+.b-ms{background:#e9eff3;color:#3f6478}
+.b-arena{background:#f3ede2;color:#8a6c33}
+.m-effort{background:#f6efe0;color:#8a6a2c;font-variant-numeric:tabular-nums}
+.m-effort.max{background:#f7e7e3;color:#9a4a45}
+.m-id{color:var(--ink-3);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:11px;color:var(--ink-3);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.note{font-size:13px;color:var(--ink-2);line-height:1.6;margin:0;flex:1}
+.actions{display:flex;gap:8px;margin-top:4px;padding-top:11px;border-top:1px dashed var(--line)}
+.btn{flex:1;text-align:center;font-size:12.5px;padding:8px 10px;border-radius:8px;transition:.15s;border:1px solid var(--line);color:var(--ink-2)}
+.btn:hover{border-color:var(--gold);color:var(--ink);background:#fbf4e6}
+.btn.primary{background:var(--ink);color:#faf6ee;border-color:var(--ink)}
+.btn.primary:hover{background:#463d33;color:#fff}
+.empty{padding:80px 0;text-align:center;color:var(--ink-3)}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);padding:34px 0 60px;color:var(--ink-3);font-size:12.5px}
+footer .cols{display:flex;gap:48px;flex-wrap:wrap;justify-content:space-between}
+footer h4{font-size:12px;letter-spacing:.16em;color:var(--ink-2);margin:0 0 10px;font-weight:600}
+footer p{margin:0 0 6px;max-width:520px;line-height:1.7}
+footer code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;background:#f1e9da;padding:1px 5px;border-radius:4px}
+
+/* ---------- island ornament ---------- */
+.island{position:absolute;right:8px;top:36px;width:230px;opacity:.9;pointer-events:none}
+@media (max-width:900px){.island{display:none}}
+@media (max-width:600px){
+  .wrap{padding:0 16px}
+  .hero{padding:30px 0 18px}
+  .stats{gap:22px}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 3l1.9 4.4L18.5 9l-4.6 1.6L12 15l-1.9-4.4L5.5 9l4.6-1.6z"/><path d="M4 19h16"/></svg>
+      <span>云端城堡 · CLOUD CASTLE</span>
+    </div>
+    <nav>
+      <a href="https://github.com/greenwoodpro/cloud-castle-gallery" target="_blank" rel="noopener">GitHub 仓库</a>
+      <a href="#about">关于这次测评</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <svg class="island" viewBox="0 0 260 200" fill="none" aria-hidden="true">
+      <!-- 云 -->
+      <path d="M22 176c-7 0-12-4-12-9s5-9 12-9c2-6 8-10 15-10s13 4 15 10c6 0 11 4 11 9s-5 9-11 9z" fill="#efe6d6" opacity=".9"/>
+      <path d="M186 34c-6 0-11-3-11-8s5-8 11-8c2-5 7-9 13-9s11 4 13 9c5 0 9 3 9 8s-4 8-9 8z" fill="#e7edf0" opacity=".9"/>
+      <!-- 岛体 -->
+      <path d="M52 104c-9-3-14-9-14-16 0-9 10-16 24-18 3-13 15-22 30-22 14 0 26 8 30 19 12 1 21 6 24 13 3 8-4 16-16 20z" fill="#f1e7d5"/>
+      <path d="M52 104c-9-3-14-9-14-16 0-9 10-16 24-18 3-13 15-22 30-22 14 0 26 8 30 19 12 1 21 6 24 13 3 8-4 16-16 20z" stroke="#c9b28a" stroke-width="1.2"/>
+      <path d="M52 104h72l-11 34-22 30-6 12-6-12-18-30z" fill="#e6d8bd"/>
+      <path d="M52 104h72l-11 34-22 30-6 12-6-12-18-30z" stroke="#c9b28a" stroke-width="1.2"/>
+      <!-- 塔 -->
+      <path d="M74 66h13v38H74z" fill="#fbf4e6" stroke="#c9b28a" stroke-width="1.1"/>
+      <path d="M71.5 66l9-14 9 14z" fill="#b5625f" opacity=".8"/>
+      <path d="M92 80h17v24H92z" fill="#fbf4e6" stroke="#c9b28a" stroke-width="1.1"/>
+      <path d="M89.8 80l10.7-11 10.7 11z" fill="#b5625f" opacity=".6"/>
+      <path d="M57 86h9v18h-9z" fill="#fbf4e6" stroke="#c9b28a" stroke-width="1.1"/>
+      <path d="M55.5 86l6-7.5 6 7.5z" fill="#b5625f" opacity=".45"/>
+      <!-- 窗与旗 -->
+      <rect x="78" y="76" width="5" height="8" rx="2.5" fill="#c9a06a" opacity=".7"/>
+      <path d="M79.5 52v-9l10 3-10 3" fill="#c9a227" opacity=".85"/>
+      <!-- 瀑布 -->
+      <path d="M104 138c-1 10-3 17-6 24" stroke="#a9c4d2" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+      <!-- 树 -->
+      <path d="M62 96l4-9 4 9z" fill="#8fa384" opacity=".8"/>
+      <circle cx="118" cy="100" r="3" fill="#8fa384" opacity=".8"/>
+    </svg>
+    <div class="kicker">One Prompt · 25 Models · 25 Floating Castles</div>
+    <h1 class="serif">用同一句提示词，<br>让 25 个模型各造一座<em>云端城堡</em></h1>
+    <p class="lede">
+      提示词固定为「使用 three.js 画一个中世纪欧洲城堡（广义）的 3D 模型，放在浮空岛上展示，视角自由、
+      使用小王子模式的画风，温和细腻、详细描述城堡的内部构造和人物、不同地形，环境」。
+      六家平台、十二个模型、四档思考强度——这里是全部 25 个工程的可运行版本与完整源码。
+    </p>
+    <div class="stats">
+      <div class="stat"><b>25</b><span>件作品</span></div>
+      <div class="stat"><b>6</b><span>个测试平台</span></div>
+      <div class="stat"><b>12</b><span>个模型</span></div>
+      <div class="stat"><b>4</b><span>档思考强度</span></div>
+      <div class="stat"><b>61</b><span>MB 工程源码</span></div>
+    </div>
+  </section>
+</div>
+
+<div class="controls">
+  <div class="wrap">
+    <div class="ctrl-row">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+        <input id="q" type="search" placeholder="搜模型、平台、特征（剖视 / 星夜 / GLB / 村民…）" autocomplete="off">
+        <kbd>/</kbd>
+      </div>
+      <select id="sort">
+        <option value="curated">默认排序（按模型分组）</option>
+        <option value="provider">按平台</option>
+        <option value="model">按模型名</option>
+        <option value="effort">按思考强度（高→默认）</option>
+        <option value="size">按工程体积</option>
+      </select>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="chips" id="providers"><span class="lbl">平台</span></div>
+    <div class="chips" id="efforts"><span class="lbl">强度</span></div>
+    <div class="chips" id="families"><span class="lbl">模型</span><button class="clear" id="clear" hidden>清除全部筛选</button></div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden>没有匹配的作品。试试「剖视」「GLB」「Claude」或清空筛选。</div>
+</main>
+
+<footer id="about">
+  <div class="wrap cols">
+    <div>
+      <h4>关于这次测评</h4>
+      <p>全部作品由同一句提示词生成，未经人工改码；少数工程在导出静态版时改了构建配置（<code>output: 'export'</code>、<code>basePath</code>），
+         以便在 GitHub Pages 上直接运行，改动不影响场景本身。</p>
+      <p><strong>预览</strong>指向 <code>live/&lt;工程名&gt;/</code> 的可运行版本；<strong>源码</strong>指向 <code>projects/&lt;工程名&gt;/</code> 的原始工程。</p>
+    </div>
+    <div>
+      <h4>目录约定</h4>
+      <p><code>projects/</code> 原始工程（含说明、截图、构建脚本）<br>
+         <code>live/</code> 可直接打开的静态版本<br>
+         <code>data.json</code> 结构化元数据</p>
+    </div>
+    <div>
+      <h4>命名规则</h4>
+      <p>文件夹名 = 模型 + 思考强度。<code>oc</code>=opencode，<code>wb</code>=WorkBuddy，<code>model</code>=魔搭，<code>trae</code>=Trae Code；
+         无后缀为默认档。<code>1017</code> 指 DeepSeek V4.1 Flash 1017 版。</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const DATA = [{"id":"astra-max","title":"云屿 · 风栖城堡","provider":"v0","providerLabel":"v0.app","model":"astra（GPT 系）","family":"GPT","effort":"max","effortNote":"","stack":"Next.js · R3F · Drei","tags":["剖视三层","村庄","GLB 导出","手记"],"note":"三层室内可剖开，配套 world.glb 静态模型、预览图与《岛屿手记》。Next 源码在 source/ 下。","entry":"index.html","live":true,"srcFiles":39,"srcKB":4496,"liveKB":6756,"shot":true},{"id":"astra-xhigh","title":"星屿 STAR ISLE","provider":"v0","providerLabel":"v0.app","model":"astra（GPT 系）","family":"GPT","effort":"xhigh","effortNote":"","stack":"单文件 HTML · R3F","tags":["离线单文件","剖视","星夜","GLB 导出","明信片"],"note":"开箱即用的离线版：769KB 单文件，含剖视、星夜、自动环游、PNG 明信片与 GLB 导出。","entry":"index.html","live":true,"srcFiles":35,"srcKB":1123,"liveKB":1123,"shot":true},{"id":"argon-high","title":"B-612 浮空星屿","provider":"v0","providerLabel":"v0.app","model":"argon（Gemini 4）","family":"Gemini","effort":"high","effortNote":"","stack":"Next.js · Three.js","tags":["悬浮标注","环绕巡航","图鉴","zip 导出"],"note":"悬浮标注 + 环绕巡航 + 城堡百科抽屉，另带 jszip 打包导出。standalone 版可直接跑。","entry":"standalone/index.html","live":true,"srcFiles":12,"srcKB":199,"liveKB":234,"shot":true},{"id":"fable5.1-max","title":"浮空岛上的中世纪城堡","provider":"v0","providerLabel":"v0.app","model":"Fable 5.1","family":"Fable","effort":"max","effortNote":"","stack":"Next.js · R3F","tags":["组件化","人物","环境","store"],"note":"组件拆得最规整的一版：城堡、人物、环境、岛屿、可选中物体各自成文件，配 scene-store 与信息面板。","entry":"index.html","live":true,"srcFiles":33,"srcKB":104,"liveKB":12359,"shot":true},{"id":"gpt6.1sol-max","title":"云间之境","provider":"v0","providerLabel":"v0.app","model":"GPT-6.1 Sol","family":"GPT","effort":"max","effortNote":"","stack":"Next.js · R3F · GLB","tags":["离线单文件","GLB 模型","手记","星夜"],"note":"导出 castle-interior.glb 与 cloud-castle.glb 两套模型，另附 1.6MB 全内联离线展示页。","entry":"离线展示.html","live":true,"srcFiles":40,"srcKB":16750,"liveKB":18322,"shot":true},{"id":"gpt6.1sol-xhigh","title":"风住的地方","provider":"v0","providerLabel":"v0.app","model":"GPT-6.1 Sol","family":"GPT","effort":"xhigh","effortNote":"","stack":"Next.js · R3F · GLB","tags":["野外手记","GLB 加载","地形","建筑"],"note":"「野外手记」式侧栏，场景按 architecture / landscape 分模块，模型走 cloud-castle.glb。","entry":"index.html","live":true,"srcFiles":32,"srcKB":5049,"liveKB":9720,"shot":true},{"id":"kimik3-max","title":"浮空岛城堡","provider":"v0","providerLabel":"v0.app","model":"Kimi K3","family":"Kimi","effort":"max","effortNote":"","stack":"Next.js · R3F","tags":["天穹","室内","人物","地表"],"note":"场景切成城堡、室内、人物、天穹、地表、周边六个场景模块，配热点组件。","entry":"index.html","live":true,"srcFiles":24,"srcKB":226,"liveKB":12500,"shot":true},{"id":"opus5.5-max","title":"星辰城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Opus 5.5","family":"Claude","effort":"max","effortNote":"","stack":"Next.js · Three.js","tags":["模块最多","剖视","导览","standalone"],"note":"lib/castle 下 13 个模块（布局、地形、植被、室内、引擎分离），另带 esbuild 打包的 standalone 版。","entry":"standalone/index.html","live":true,"srcFiles":45,"srcKB":1072,"liveKB":1076,"shot":true},{"id":"opus5.5-xhigh","title":"云上城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Opus 5.5","family":"Claude","effort":"xhigh","effortNote":"","stack":"Next.js · R3F","tags":["组件化","热点注册表","相机模块","面板"],"note":"最「工程化」的一版：独立 camera 模块 + hotspot 注册表 + 分层面板，全部 TSX 组件。","entry":"index.html","live":true,"srcFiles":38,"srcKB":289,"liveKB":9984,"shot":true},{"id":"opus5.5-high","title":"星屿城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Opus 5.5","family":"Claude","effort":"high","effortNote":"","stack":"单文件 HTML · Three.js","tags":["单文件","图鉴","剖视主堡","昼夜"],"note":"127KB 单文件，左侧图鉴点条目飞镜头、内部条目自动开剖视；另存 Next.js 版本源码。","entry":"index.html","live":true,"srcFiles":15,"srcKB":379,"liveKB":379,"shot":true},{"id":"sonnet5.5-max","title":"小王子的浮空城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Sonnet 5.5","family":"Claude","effort":"max","effortNote":"","stack":"TypeScript · esbuild","tags":["四层剖开","图书馆","玫瑰房","天文台","小龙"],"note":"四层城堡整体剖开（厨房 / 王座大厅 / 图书馆 / 玫瑰房 / 天文台），配村庄、雪山与洞穴小龙；TS 源码经 esbuild 打成 castle.js。","entry":"index.html","live":true,"srcFiles":19,"srcKB":817,"liveKB":817,"shot":true},{"id":"modelds1017-high","title":"星海上的城堡","provider":"ms","providerLabel":"ModelScope 魔搭","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"high","effortNote":"","stack":"原生 ES Module · Three.js","tags":["星海","模块化源码","本地服务器"],"note":"纯手写 ES Module，src 下按城堡/室内/人物/环境/岛屿拆文件；因 ES Module 限制需静态服务器（仓库里带了启动脚本）。","entry":"index.html","live":true,"srcFiles":31,"srcKB":1572,"liveKB":1553,"shot":true},{"id":"modelqwen3.8flash-high","title":"小王子的石头王国","provider":"ms","providerLabel":"ModelScope 魔搭","model":"Qwen 3.8 Flash","family":"Qwen","effort":"high","effortNote":"","stack":"单文件 HTML","tags":["剖视","村民","人物","单文件"],"note":"单文件 HTML，剖视与村民、人物都做了；附两张全景/剖视预览图。","entry":"index.html","live":true,"srcFiles":3,"srcKB":528,"liveKB":54,"shot":true},{"id":"ocdsv4.1-high","title":"浮空岛 · 中世纪城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1","family":"DeepSeek","effort":"high","effortNote":"","stack":"原生 JS · Three.js","tags":["自动环绕","昼夜","人物","standalone"],"note":"src 按 castle/island/terrain/sky/props/characters 拆分，另带 tools/build.mjs 打包与 standalone.html。","entry":"index.html","live":true,"srcFiles":15,"srcKB":457,"liveKB":451,"shot":true},{"id":"ocdsv4.1f-max","title":"小王子与浮空城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1 Flash","family":"DeepSeek","effort":"max","effortNote":"","stack":"单文件 HTML","tags":["单文件","剖面","村民","人物"],"note":"整份作品压在一个 HTML 里，剖面、村民、人物都在，是最小的一个工程（84KB）。","entry":"little-prince-castle.html","live":true,"srcFiles":1,"srcKB":84,"liveKB":168,"shot":true},{"id":"ocds1017-high","title":"星尘城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"high","effortNote":"","stack":"原生 JS · Three.js","tags":["已打包","剖面","成片截图"],"note":"JS 已打成 dist/app.js 单包，js/ 下保留可读源码；final/ 有 6 张成片截图（总览 + 五个房间）。","entry":"index.html","live":true,"srcFiles":19,"srcKB":3467,"liveKB":2163,"shot":true},{"id":"ocds1017-max","title":"云上城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"max","effortNote":"","stack":"原生 JS · Three.js","tags":["已打包","庭院","室内","地形"],"note":"同模型 max 档，模块按 castle / courtyard / interior / nature / sky / terrain 拆得更细。","entry":"index.html","live":true,"srcFiles":17,"srcKB":861,"liveKB":858,"shot":true},{"id":"traeqwen3.8f-xhigh","title":"浮空岛 · 中世纪城堡","provider":"trae","providerLabel":"Trae Code","model":"Qwen 3.8 Flash","family":"Qwen","effort":"xhigh","effortNote":"","stack":"单文件 HTML","tags":["单文件","剖面","导览","人物"],"note":"Trae Code 里跑出的单文件版本，剖面与导览都在——本批体积最小的工程（32KB）。","entry":"castle_island.html","live":true,"srcFiles":1,"srcKB":32,"liveKB":63,"shot":true},{"id":"wbds1017-xhigh","title":"浮空岛上的城堡","provider":"wb","providerLabel":"WorkBuddy","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"max","effortNote":"文件夹标 xhigh，实为 max","stack":"单文件 HTML · Three.js","tags":["剖面","黄昏","人物","本地 three"],"note":"WorkBuddy 内的 DS V4.1 Flash 1017 作品，剖面 + 黄昏，three.module.js 已本地化。","entry":"index.html","live":true,"srcFiles":5,"srcKB":6383,"liveKB":1350,"shot":true},{"id":"wbglm5.3flash-xhigh","title":"小王子的浮空城堡","provider":"wb","providerLabel":"WorkBuddy","model":"GLM 5.3 Flash","family":"GLM","effort":"max","effortNote":"文件夹标 xhigh，实为 max","stack":"单文件 HTML · Three.js","tags":["全内联","昼夜","自动环绕","GLB 导出"],"note":"751KB 全内联单文件，昼夜切换、自动环绕与 GLB 导出齐全。","entry":"小王子的浮空城堡.html","live":true,"srcFiles":5,"srcKB":1672,"liveKB":2188,"shot":true},{"id":"wbhy4preview-high","title":"云端城堡","provider":"wb","providerLabel":"WorkBuddy","model":"Hunyuan 4 Preview","family":"Hunyuan","effort":"high","effortNote":"","stack":"单文件 HTML · Three.js","tags":["剖面","昼夜","图鉴","自动环绕"],"note":"剖面 + 昼夜 + 图鉴 + 自动环绕；vendor 里带了本地 three.module.js。","entry":"index.html","live":true,"srcFiles":2,"srcKB":1379,"liveKB":1379,"shot":true},{"id":"wbminimaxm3.1flash-max","title":"浮空岛上的城堡","provider":"wb","providerLabel":"WorkBuddy","model":"MiniMax M3.1 Flash","family":"MiniMax","effort":"max","effortNote":"","stack":"原生 JS · Three.js","tags":["纹理模块","剖视","校验脚本"],"note":"把纹理单独拆成 textures.js；目录里还留着 .verify 下的校验脚本（射线检测、像素比对、截图）。","entry":"index.html","live":true,"srcFiles":19,"srcKB":1419,"liveKB":1406,"shot":true},{"id":"wbmimo2.6fp","title":"小王子的浮空城堡","provider":"wb","providerLabel":"WorkBuddy","model":"MiMo 2.6 FP","family":"MiMo","effort":"default","effortNote":"","stack":"单文件 HTML · Three.js","tags":["雨雪天气","导览","剖面","自动环绕"],"note":"唯一带雨雪天气切换的一版，导览与剖面都在；本地 lib 目录带 three.min.js。","entry":"castle.html","live":true,"srcFiles":7,"srcKB":3798,"liveKB":792,"shot":true},{"id":"wbstep5preview-high","title":"云端城堡","provider":"wb","providerLabel":"WorkBuddy","model":"Step 5 Preview","family":"Step","effort":"high","effortNote":"","stack":"单文件 HTML · Three.js","tags":["剖视最全","CSS2D 标签","人物志","QA 截图"],"note":"剖视做得最细的一版（7 处剖视相关逻辑），CSS2DRenderer 做人物标签，qa/ 里留了 10 张过程截图。","entry":"index.html","live":true,"srcFiles":15,"srcKB":10227,"liveKB":1368,"shot":true},{"id":"arenakibitz","title":"云上玫瑰堡","provider":"arena","providerLabel":"Arena · Kibitz","model":"Kibitz（疑似 Kimi K3.1）","family":"Kimi","effort":"default","effortNote":"","stack":"Vite · React · Three.js","tags":["居民作息","天气","岛志界面","单文件构建"],"note":"Arena 平台 Kibitz 模型的作品：居民有作息、天气会变，界面走「立体岛志」；vite-plugin-singlefile 打成单文件。","entry":"index.html","live":true,"srcFiles":17,"srcKB":272,"liveKB":907,"shot":true}];
+
+const EFFORT_LABEL = { default: '默认', high: 'high', xhigh: 'xhigh', max: 'max' };
+const EFFORT_ORDER = { max: 0, xhigh: 1, high: 2, default: 3 };
+const FAMILY_ORDER = ['Claude','GPT','Gemini','DeepSeek','Qwen','Kimi','GLM','Hunyuan','MiniMax','MiMo','Step','Fable'];
+
+const state = { q: '', providers: new Set(), efforts: new Set(), families: new Set(), sort: 'curated' };
+const $ = (s) => document.querySelector(s);
+
+function counts(key) {
+  const m = new Map();
+  DATA.forEach(d => m.set(d[key], (m.get(d[key]) || 0) + 1));
+  return m;
+}
+
+function buildChips(el, key, labelFn, order) {
+  const m = counts(key);
+  let keys = [...m.keys()];
+  if (order) keys.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  else keys.sort((a, b) => m.get(b) - m.get(a));
+  keys.forEach(k => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.setAttribute('aria-pressed', 'false');
+    b.dataset.value = k;
+    b.innerHTML = `${labelFn ? labelFn(k) : k}<span class="n">${m.get(k)}</span>`;
+    b.onclick = () => {
+      const set = state[el.id === 'providers' ? 'providers' : el.id === 'efforts' ? 'efforts' : 'families'];
+      set.has(k) ? set.delete(k) : set.add(k);
+      b.setAttribute('aria-pressed', set.has(k) ? 'true' : 'false');
+      render();
+    };
+    el.appendChild(b);
+  });
+}
+
+function match(d) {
+  if (state.providers.size && !state.providers.has(d.provider)) return false;
+  if (state.efforts.size && !state.efforts.has(d.effort)) return false;
+  if (state.families.size && !state.families.has(d.family)) return false;
+  if (!state.q) return true;
+  const hay = [d.id, d.title, d.model, d.family, d.providerLabel, d.stack, d.note, d.tags.join(' '), d.effortNote]
+    .join(' ').toLowerCase();
+  return state.q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+}
+
+function sortList(list) {
+  const l = [...list];
+  const famIdx = (f) => { const i = FAMILY_ORDER.indexOf(f); return i < 0 ? 99 : i; };
+  switch (state.sort) {
+    case 'provider': l.sort((a, b) => a.providerLabel.localeCompare(b.providerLabel, 'zh') || a.model.localeCompare(b.model)); break;
+    case 'model': l.sort((a, b) => famIdx(a.family) - famIdx(b.family) || a.model.localeCompare(b.model) || EFFORT_ORDER[a.effort] - EFFORT_ORDER[b.effort]); break;
+    case 'effort': l.sort((a, b) => EFFORT_ORDER[a.effort] - EFFORT_ORDER[b.effort] || famIdx(a.family) - famIdx(b.family)); break;
+    case 'size': l.sort((a, b) => b.srcKB - a.srcKB); break;
+    default: l.sort((a, b) => famIdx(a.family) - famIdx(b.family) || a.model.localeCompare(b.model)
+      || EFFORT_ORDER[a.effort] - EFFORT_ORDER[b.effort] || a.provider.localeCompare(b.provider));
+  }
+  return l;
+}
+
+function card(d) {
+  const src = `https://github.com/greenwoodpro/cloud-castle-gallery/tree/main/projects/${d.id}`;
+  const live = `live/${d.id}/`;
+  return `<article class="card">
+    <a class="thumb" href="${live}" target="_blank" rel="noopener">
+      ${d.shot ? `<img loading="lazy" src="assets/thumbs/${d.id}.jpg" alt="${d.title} 预览">` : `<div class="noimg">暂无截图</div>`}
+      <span class="play">在线预览 ↗</span>
+    </a>
+    <div class="body">
+      <h3>${d.title}</h3>
+      <div class="meta">
+        <span class="badge b-${d.provider}">${d.providerLabel}</span>
+        <span>${d.model}</span>
+        <span class="badge m-effort ${d.effort}">${EFFORT_LABEL[d.effort] || d.effort}${d.effortNote ? '*' : ''}</span>
+      </div>
+      <div class="tags">${d.tags.slice(0, 5).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+      <p class="note">${d.note}</p>
+      <div class="meta"><span class="m-id">${d.id}</span><span class="m-id">· ${d.stack}</span></div>
+      <div class="actions">
+        <a class="btn primary" href="${live}" target="_blank" rel="noopener">运行</a>
+        <a class="btn" href="${src}" target="_blank" rel="noopener">源码</a>
+      </div>
+    </div>
+  </article>`;
+}
+
+function render() {
+  const list = sortList(DATA.filter(match));
+  $('#grid').innerHTML = list.map(card).join('');
+  $('#empty').hidden = list.length > 0;
+  $('#count').textContent = `${list.length} / ${DATA.length} 件`;
+  $('#clear').hidden = !(state.providers.size || state.efforts.size || state.families.size || state.q);
+  const hash = [];
+  if (state.q) hash.push('q=' + encodeURIComponent(state.q));
+  ['providers', 'efforts', 'families'].forEach(k => state[k].size && hash.push(k + '=' + [...state[k]].join(',')));
+  if (state.sort !== 'curated') hash.push('sort=' + state.sort);
+  history.replaceState(null, '', hash.length ? '#' + hash.join('&') : location.pathname);
+}
+
+function fromHash() {
+  const h = location.hash.replace(/^#/, '');
+  if (!h) return;
+  new URLSearchParams(h).forEach((v, k) => {
+    if (k === 'q') { state.q = v; $('#q').value = v; }
+    else if (k === 'sort') { state.sort = v; $('#sort').value = v; }
+    else if (state[k]) { v.split(',').filter(Boolean).forEach(x => state[k].add(x)); }
+  });
+}
+
+buildChips($('#providers'), 'provider', null);
+buildChips($('#efforts'), 'effort', (k) => EFFORT_LABEL[k] || k, ['max', 'xhigh', 'high', 'default']);
+buildChips($('#families'), 'family', null, FAMILY_ORDER);
+fromHash();
+// 恢复 hash 里的 chip 状态
+document.querySelectorAll('.chip').forEach(b => {
+  const key = b.closest('.chips').id;
+  const set = key === 'providers' ? state.providers : key === 'efforts' ? state.efforts : state.families;
+  if (set.has(b.dataset.value)) b.setAttribute('aria-pressed', 'true');
+});
+render();
+
+$('#q').addEventListener('input', e => { state.q = e.target.value.trim(); render(); });
+$('#sort').addEventListener('change', e => { state.sort = e.target.value; render(); });
+$('#clear').addEventListener('click', () => {
+  state.q = ''; $('#q').value = '';
+  state.providers.clear(); state.efforts.clear(); state.families.clear();
+  document.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  render();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== $('#q')) { e.preventDefault(); $('#q').focus(); }
+  if (e.key === 'Escape' && document.activeElement === $('#q')) { $('#q').value = ''; state.q = ''; render(); $('#q').blur(); }
+});
+</script>
+</body>
+</html>

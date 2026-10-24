@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>云上城堡 · 小王子手记</title>
+  <meta name="description" content="一座中世纪欧洲城堡，栖在浮空岛上。小王子式的温柔画风，自由环游，细看城堡内外。" />
+  <link rel="stylesheet" href="./styles.css" />
+  <!-- 已打包为单文件 IIFE，file:// 双击可直接打开 -->
+  <script defer src="./dist/app.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+
+  <header class="masthead">
+    <div class="masthead-mark"><span class="star">✦</span><span class="line"></span></div>
+    <h1>云上城堡</h1>
+    <p class="subtitle">LE CHÂTEAU DES NUAGES</p>
+    <p class="tagline">一座漂在黄昏里的中世纪小城堡</p>
+  </header>
+
+  <aside id="journal" class="journal">
+    <button id="collapse" class="journal-close" aria-label="收起手记">×</button>
+    <div class="journal-eyebrow">
+      <span>漫游手记</span>
+      <span id="chapterIndex" class="chapter-index">I</span>
+    </div>
+    <h2 id="chapterTitle">云海之上，一座会呼吸的城堡</h2>
+    <div class="tags" id="chapterTags"></div>
+    <p id="chapterText" class="chapter-text"></p>
+    <nav id="views" class="views" aria-label="视角"></nav>
+    <p class="journal-foot">拖拽环游 · 点击地名靠近</p>
+  </aside>
+
+  <button id="reopen" class="reopen" aria-label="打开手记">漫游手记</button>
+
+  <div class="dock">
+    <button id="auto" class="auto" aria-label="切换自动环游"></button>
+    <div class="hints">
+      <span>拖拽旋转</span><i>·</i>
+      <span>滚轮缩放</span><i>·</i>
+      <span>右键平移</span><i>·</i>
+      <span>双击俯览</span>
+    </div>
+  </div>
+
+  <div id="hotspots"></div>
+
+  <div class="vignette"></div>
+  <div class="grain"></div>
+
+  <div id="loader" class="loader">
+    <div class="loader-inner">
+      <div class="loader-star">✦</div>
+      <h2>云上城堡</h2>
+      <p>LE CHÂTEAU DES NUAGES</p>
+      <span class="loader-rule"></span>
+      <small>正在把城堡放上云端…</small>
+    </div>
+  </div>
+
+  <div id="fatal" class="fatal">
+    <div>
+      <h2>手记被风吹散了</h2>
+      <p class="fatal-detail"></p>
+      <p class="fatal-hint">请刷新页面，或确认通过本地服务器打开。</p>
+    </div>
+  </div>
+
+  <!-- 入口在 head 的 dist/app.js -->
+</body>
+</html>

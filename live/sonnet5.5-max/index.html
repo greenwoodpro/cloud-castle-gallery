@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小王子的浮空城堡</title>
+<style>
+  :root { --parchment:#fbf4e4; --ink:#2f3b5c; --coral:#d9776a; --gold:#ecc766; --mist:#cfe3ea; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--mist); color:var(--ink); font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; overflow:hidden; }
+  #app { position:fixed; inset:0; }
+  #status { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:var(--mist); font-size:15px; text-align:center; padding:24px; }
+  header { position:fixed; top:12px; left:12px; background:rgba(251,244,228,.92); padding:10px 14px; border-radius:16px; box-shadow:0 6px 20px rgba(47,59,92,.2); display:none; max-width:70vw; }
+  header h1 { margin:0; font-family: "Songti SC","Noto Serif CJK SC","STSong",serif; font-size:18px; }
+  header p { margin:2px 0 0; font-size:12px; opacity:.7; }
+  nav { position:fixed; left:0; right:0; bottom:0; padding:12px; display:none; flex-direction:column; gap:8px; }
+  .row { display:flex; gap:8px; align-items:center; }
+  #views { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+  #views::-webkit-scrollbar { display:none; }
+  #moods { display:flex; padding:4px; border-radius:999px; background:rgba(251,244,228,.92); box-shadow:0 6px 20px rgba(47,59,92,.2); }
+  button { font:inherit; font-size:13px; font-weight:600; border:0; cursor:pointer; color:var(--ink); background:rgba(251,244,228,.92); padding:8px 14px; border-radius:999px; white-space:nowrap; box-shadow:0 4px 14px rgba(47,59,92,.18); }
+  #moods button { box-shadow:none; background:transparent; padding:6px 12px; }
+  #moods button.on { background:var(--ink); color:var(--parchment); }
+  #views button.on { background:var(--coral); color:var(--parchment); }
+  #rotate.on { background:var(--gold); }
+  body.ready header { display:block; }
+  body.ready nav { display:flex; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="status">正在搭建城堡…</div>
+<header><h1>小王子的浮空城堡</h1><p id="hint">拖动旋转 · 滚轮或双指缩放 · 右键平移</p></header>
+<nav>
+  <div class="row"><div id="moods"></div><button id="rotate" type="button">自动环绕</button></div>
+  <div id="views"></div>
+</nav>
+<script src="castle.js"></script>
+</body>
+</html>

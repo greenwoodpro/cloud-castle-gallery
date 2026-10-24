@@ -1,0 +1,16 @@
+{
+  "name": "floating-castle",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "@types/three": "^0.180.0",
+    "typescript": "^5.0.0"
+  }
+}

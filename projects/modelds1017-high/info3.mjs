@@ -1,0 +1,13 @@
+import puppeteer from 'puppeteer-core';
+const EDGE='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+const b=await puppeteer.launch({executablePath:EDGE,headless:'new',args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const p=await b.newPage(); await p.setViewport({width:1280,height:800});
+await p.goto('http://localhost:4173/?norotate=1',{waitUntil:'domcontentloaded',timeout:90000});
+await p.waitForFunction('window.__ready===true',{timeout:90000});
+await new Promise(r=>setTimeout(r,1500));
+const a=await p.evaluate(()=>{const {renderer,scene}=window.__castle; let cast=0; scene.traverse(o=>{if(o.isMesh&&o.castShadow)cast++}); return {calls:renderer.info.render.calls,tris:renderer.info.render.triangles,cast};});
+await p.evaluate(()=>{ window.__castle.renderer.shadowMap.enabled=false; });
+await new Promise(r=>setTimeout(r,1200));
+const c=await p.evaluate(()=>({calls:window.__castle.renderer.info.render.calls,tris:window.__castle.renderer.info.render.triangles}));
+console.log({withShadows:a, noShadows:c});
+await b.close();

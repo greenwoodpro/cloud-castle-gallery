@@ -1,0 +1,110 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-serif: var(--font-noto-serif), 'Noto Serif SC', 'Songti SC', serif;
+  --font-heading: var(--font-zcool), 'ZCOOL XiaoWei', var(--font-noto-serif), serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  color-scheme: light;
+  --background: #fbf5ea;
+  --foreground: #4a3a2c;
+  --card: #fbf5ea;
+  --card-foreground: #4a3a2c;
+  --popover: #fbf5ea;
+  --popover-foreground: #4a3a2c;
+  --primary: #5b7fa8;
+  --primary-foreground: #fbf5ea;
+  --secondary: #efe4d1;
+  --secondary-foreground: #4a3a2c;
+  --muted: #efe4d1;
+  --muted-foreground: #7a6656;
+  --accent: #e6b04a;
+  --accent-foreground: #4a3a2c;
+  --destructive: #c4574c;
+  --border: #dccbb0;
+  --input: #dccbb0;
+  --ring: #5b7fa8;
+  --chart-1: #5b7fa8;
+  --chart-2: #e6b04a;
+  --chart-3: #7a6656;
+  --chart-4: #dccbb0;
+  --chart-5: #4a3a2c;
+  --radius: 0.75rem;
+  --sidebar: #fbf5ea;
+  --sidebar-foreground: #4a3a2c;
+  --sidebar-primary: #5b7fa8;
+  --sidebar-primary-foreground: #fbf5ea;
+  --sidebar-accent: #efe4d1;
+  --sidebar-accent-foreground: #4a3a2c;
+  --sidebar-border: #dccbb0;
+  --sidebar-ring: #5b7fa8;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .paper-card {
+    background-color: color-mix(in oklab, var(--background) 88%, transparent);
+    border: 1px solid var(--border);
+    box-shadow: 0 6px 24px -12px color-mix(in oklab, var(--foreground) 45%, transparent);
+    backdrop-filter: blur(6px);
+  }
+
+  .paper-grain {
+    background-image:
+      radial-gradient(ellipse at center, transparent 55%, color-mix(in oklab, var(--foreground) 22%, transparent) 100%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.27 0 0 0 0 0.2 0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+    opacity: 0.55;
+  }
+}

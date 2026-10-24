@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>星海上的城堡 · Le Château au Bord des Étoiles</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23faf3e4'/%3E%3Cpath d='M16 5l2.4 7.1H26l-6 4.4 2.3 7.1-6.3-4.5-6.3 4.5 2.3-7.1-6-4.4h7.6z' fill='%23b98b4e'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="./style.css" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three.module.js",
+    "three/addons/": "./vendor/"
+  }
+}
+</script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="scene"></canvas>
+
+    <div class="grain"></div>
+    <div class="vignette"></div>
+
+    <header class="title-block">
+      <div class="ornament"><span></span><i>✦</i><span></span></div>
+      <h1>星海上的城堡</h1>
+      <p class="en">Le Château au Bord des Étoiles</p>
+      <p class="hint">拖动旋转 · 滚轮靠近 · 右键平移</p>
+    </header>
+
+    <aside id="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">GUIDE</p>
+          <h2>导览</h2>
+        </div>
+        <button id="closePanel" class="icon-btn" title="收起">×</button>
+      </div>
+      <div id="spotList" class="spot-list"></div>
+      <div class="panel-foot">
+        <i>✦</i>
+        <p>「重要的东西，用眼睛是看不见的。」</p>
+      </div>
+    </aside>
+
+    <div class="toolbar">
+      <button class="tool" id="btnRotate" data-on="1"><span class="dot"></span>自动旋转</button>
+      <button class="tool" id="btnCut"><span class="dot"></span>剖切透视</button>
+      <button class="tool" id="btnNight"><span class="dot"></span>星夜</button>
+      <button class="tool" id="btnHome"><span class="dot"></span>复位</button>
+      <button class="tool" id="btnPanel"><span class="dot"></span>导览</button>
+    </div>
+
+    <div class="caption" id="caption">
+      <p class="eyebrow">NOW VIEWING</p>
+      <h3 id="captionTitle">一座漂在星海上的城堡</h3>
+      <p id="captionText"></p>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="loading-inner">
+        <div class="star">✦</div>
+        <h1>星海上的城堡</h1>
+        <p>正在把岛和星星放好……</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

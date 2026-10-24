@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#f5f3ec" />
+<title>云间之境 · 离线童话世界</title>
+<style>
+/*__WORLD_FONT__*/
+:root{--paper:#f5f3ec;--ink:#44544b;--sage:#9eb298;--clay:#cf987c;--gold:#dfc382;--border:color-mix(in srgb,var(--ink) 15%,transparent)}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--paper);color:var(--ink);font:14px/1.6 'World Sans','PingFang SC','Microsoft YaHei',sans-serif}button,select{font:inherit;cursor:pointer;color:inherit}button:focus-visible,select:focus-visible{outline:2px solid var(--sage);outline-offset:4px}button{border:0;background:transparent}#scene{position:fixed;inset:0}canvas{display:block;touch-action:none}header{position:fixed;inset:0 0 auto;display:flex;justify-content:space-between;align-items:center;padding:24px 32px;pointer-events:none}h1{margin:0;font-family:inherit;font-size:27px;font-weight:500;letter-spacing:5px}header p{margin:4px 0 0;opacity:.7;letter-spacing:2px}header>div:last-child{display:flex;gap:8px;pointer-events:auto}.pill{display:flex;gap:4px;border:1px solid var(--border);border-radius:28px;padding:5px;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(12px)}.pill button{padding:8px 15px;border-radius:22px;white-space:nowrap}.pill button[aria-pressed=true]{background:color-mix(in srgb,var(--sage) 25%,var(--paper))}select{position:fixed;top:125px;left:32px;border:1px solid var(--border);border-radius:24px;padding:9px 14px;background:var(--paper)}#controls{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:12px;white-space:nowrap}#controls p{margin:0;opacity:.65;font-size:14px}#controls>div{display:flex;gap:8px}#open-journal{position:fixed;left:32px;bottom:36px;background:var(--paper);border:1px solid var(--border);padding:12px 17px;border-radius:12px}#loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--paper);font-size:18px;letter-spacing:3px}dialog{max-width:550px;width:calc(100% - 32px);max-height:85dvh;overflow:auto;background:var(--paper);color:var(--ink);border:1px solid var(--border);border-radius:20px;padding:30px}dialog::backdrop{background:color-mix(in srgb,var(--ink) 25%,transparent);backdrop-filter:blur(6px)}#close-journal{display:inline-flex;align-items:center;margin-right:12px;border:1px solid var(--border);border-radius:20px;padding:4px 13px}h2{font-family:inherit;font-size:28px;font-weight:400;margin:12px 0 20px}h3{font-size:15px;font-weight:500;margin:20px 0 6px}dialog p{line-height:1.9;opacity:.8}#place-description{margin-bottom:26px}.journal-label{opacity:.6}body[data-time=night] #controls>p{color:var(--paper)}.offline-note{position:fixed;right:32px;bottom:35px;opacity:.65;font-size:14px}body[data-time=night] .offline-note{color:var(--paper)}
+@media(max-width:700px){header{padding:18px}h1{font-size:23px}header p{font-size:14px;letter-spacing:0}header>div:last-child{position:fixed;left:50%;top:110px;transform:translateX(-50%)}.pill button{padding:8px 11px}select{top:168px;left:18px;padding:7px 10px}#open-journal{left:18px;bottom:120px;padding:8px 12px}#controls{bottom:22px}.offline-note{right:18px;bottom:121px;font-size:14px}dialog{padding:23px}}
+</style>
+</head>
+<body>
+<main id="scene" aria-label="云间之境 3D 世界"></main>
+<header><div><h1>云间之境</h1><p>把童话，安放在云端。</p></div><div class="pill" role="group" aria-label="查看模式"><button data-mode="overview" aria-pressed="true">小岛全景</button><button data-mode="interior" aria-pressed="false">城堡内部</button><button id="reset">重置视角</button></div></header>
+<label for="places" hidden>选择探索地点</label><select id="places"></select>
+<button id="open-journal">翻开世界手记 ↗</button>
+<div id="controls"><p>拖动旋转 · 滚轮缩放 · 右键平移</p><div><div class="pill"><button id="orbit" aria-pressed="false">自动环游</button></div><div class="pill" role="group" aria-label="时间氛围"><button data-time="day" aria-pressed="true">晴日</button><button data-time="sunset" aria-pressed="false">黄昏</button><button data-time="night" aria-pressed="false">星夜</button></div></div></div>
+<span class="offline-note">完全离线 · Three.js 手工世界</span>
+<dialog id="journal"><button id="close-journal">关闭</button><span class="journal-label">云间手记 · 世界的一角</span><h2 id="place-title"></h2><p id="place-description"></p><div id="place-details"></div></dialog>
+<div id="loading" role="status">正在安放一座小小的世界…</div>
+<script>try { /*__WORLD_BUNDLE__*/ } catch(error) { document.getElementById('loading').textContent='请在支持 WebGL 的浏览器中打开，并开启硬件加速。'; console.error(error); }</script>
+</body>
+</html>

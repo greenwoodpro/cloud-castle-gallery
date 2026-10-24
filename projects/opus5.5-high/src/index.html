@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6efe1" />
+    <title>星屿城堡 · 浮空岛上的中世纪城堡</title>
+    <meta name="description" content="用 three.js 绘制的中世纪欧洲城堡，坐落在一座浮空岛上，小王子风格的温柔画风。" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --paper: #f8f2e6;
+        --bg: #f6efe1;
+        --ink: #24385b;
+        --ink-soft: #5b6a85;
+        --line: #ddd0b6;
+        --wash: #ebe1cc;
+        --gold: #dfa645;
+        --serif: 'Noto Serif SC', 'Songti SC', serif;
+        --sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+      button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+      main { position: relative; height: 100dvh; overflow: hidden; }
+      #scene { position: absolute; inset: 0; }
+      .paper {
+        background: color-mix(in oklab, var(--paper) 92%, transparent);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--line);
+        box-shadow: 0 18px 40px -18px color-mix(in oklab, var(--ink) 45%, transparent);
+      }
+      #loading { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; gap: 16px; align-items: center; justify-content: center; background: var(--bg); font-family: var(--serif); font-size: 18px; }
+      #loading .spin { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--gold); animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      #panel { position: absolute; z-index: 20; left: 12px; right: 12px; bottom: 96px; max-height: 46dvh; display: flex; flex-direction: column; overflow: hidden; border-radius: 18px; }
+      #panel[hidden] { display: none; }
+      @media (min-width: 768px) { #panel { left: 20px; right: auto; top: 20px; bottom: 112px; max-height: none; width: 380px; } }
+      .head { display: flex; justify-content: space-between; gap: 12px; padding: 20px 20px 12px; }
+      .eyebrow { margin: 0; font-size: 12px; letter-spacing: .3em; color: var(--ink-soft); font-weight: 500; }
+      .title { margin: 4px 0; font-family: var(--serif); font-size: 26px; font-weight: 700; }
+      .subtitle { margin: 0; font-size: 14px; color: var(--ink-soft); }
+      .intro { display: none; margin: 0; padding: 0 20px 16px; font-size: 14px; line-height: 1.7; color: color-mix(in oklab, var(--ink) 80%, transparent); }
+      @media (min-width: 768px) { .intro { display: block; } }
+      .icon-btn { border-radius: 999px; padding: 8px; color: var(--ink-soft); }
+      .icon-btn:hover { background: var(--wash); color: var(--ink); }
+      .tabs { margin: 0 20px; display: flex; gap: 4px; border-radius: 999px; background: var(--wash); padding: 4px; }
+      .tab { flex: 1; border-radius: 999px; padding: 6px 8px; font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+      .tab[aria-selected='true'] { background: var(--ink); color: var(--paper); }
+      #list { list-style: none; margin: 12px 0 0; padding: 0 12px 16px; overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+      #list li { border-bottom: 1px solid color-mix(in oklab, var(--line) 70%, transparent); }
+      #list li:last-child { border-bottom: 0; }
+      .row { display: flex; width: 100%; align-items: center; gap: 12px; padding: 12px 8px; border-radius: 12px; text-align: left; }
+      .row:hover, .row[aria-expanded='true'] { background: color-mix(in oklab, var(--wash) 70%, transparent); }
+      .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex-shrink: 0; }
+      .row[aria-expanded='true'] .dot { background: var(--gold); }
+      .row-title { flex: 1; font-family: var(--serif); font-size: 16px; font-weight: 500; }
+      .tag { border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; font-size: 12px; color: var(--ink-soft); }
+      .body { margin: 0; padding: 0 8px 16px 28px; font-size: 14px; line-height: 1.7; color: color-mix(in oklab, var(--ink) 85%, transparent); }
+
+      #open-panel { position: absolute; z-index: 20; left: 16px; top: 16px; border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 500; }
+      #open-panel[hidden] { display: none; }
+
+      #controls { position: absolute; z-index: 20; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 999px; max-width: calc(100% - 24px); overflow-x: auto; }
+      @media (min-width: 768px) { #controls { bottom: 24px; } }
+      .seg { display: flex; gap: 4px; border-radius: 999px; background: var(--wash); padding: 4px; }
+      .seg button { border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 500; color: var(--ink-soft); white-space: nowrap; }
+      .seg button[aria-checked='true'] { background: var(--ink); color: var(--paper); }
+      .ctl { border-radius: 999px; padding: 8px 12px; font-size: 14px; font-weight: 500; color: var(--ink-soft); white-space: nowrap; }
+      .ctl:hover, .ctl[aria-pressed='true'] { background: var(--wash); color: var(--ink); }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">星屿城堡：浮空岛上的中世纪城堡 3D 模型</h1>
+      <div id="scene" role="img" aria-label="可自由旋转查看的浮空岛城堡三维场景"></div>
+      <div id="loading"><div class="spin" aria-hidden="true"></div><p>正在把小岛托上云端…</p></div>
+
+      <aside id="panel" class="paper" aria-label="城堡图鉴">
+        <div class="head">
+          <div>
+            <p class="eyebrow">FLOATING CASTLE</p>
+            <h2 class="title" id="intro-title"></h2>
+            <p class="subtitle" id="intro-subtitle"></p>
+          </div>
+          <button class="icon-btn" id="close-panel" aria-label="收起图鉴" style="font-size:20px;line-height:1;padding:6px 10px">×</button>
+        </div>
+        <p class="intro" id="intro-body"></p>
+        <div class="tabs" role="tablist" id="tabs" aria-label="图鉴分类"></div>
+        <ul id="list" role="tabpanel"></ul>
+      </aside>
+      <button id="open-panel" class="paper" hidden>打开图鉴</button>
+
+      <nav id="controls" class="paper" aria-label="场景控制">
+        <div class="seg" role="radiogroup" aria-label="时间" id="times"></div>
+        <button class="ctl" id="toggle-cutaway" aria-pressed="false">剖视主堡</button>
+        <button class="ctl" id="toggle-rotate" aria-pressed="true">自动环绕</button>
+        <button class="ctl" id="reset">全景</button>
+      </nav>
+    </main>
+    <script type="module">
+import './app.js'
+    </script>
+  </body>
+</html>

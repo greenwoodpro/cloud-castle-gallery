@@ -1,0 +1,2334 @@
+import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+const TAU = Math.PI * 2
+
+const ISLAND_R = 34
+const PLATEAU = 3
+const CASTLE = { x: 0, z: -3 }
+const LAKE = { x: -15, z: 13, r: 6.5 }
+const LAKE_LEVEL = 0.45
+const MOAT_LEVEL = PLATEAU - 0.55
+const HILL = { x: 19, z: -16 }
+const FOREST = { x: -19, z: -12 }
+const MEADOW = { x: -1, z: 23 }
+const FIELD = { x: 17.5, z: 13.5, hu: 3.5, hv: 2.75, rot: 0.25 }
+const PATHS = [
+  [[0, 10.8], [0.5, 14], [6, 15.5], [11, 14.5]],
+  [[0.5, 14], [-4, 14.5], [-8, 13.2]],
+  [[11, 14.5], [12.5, 18.5], [14.5, 21.5]],
+]
+
+const smoothstep = (e0, e1, x) => {
+  const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)))
+  return t * t * (3 - 2 * t)
+}
+const gauss = (dx, dz, s) => Math.exp(-(dx * dx + dz * dz) / (2 * s * s))
+const lerp = (a, b, t) => a + (b - a) * t
+
+function mulberry32(seed) {
+  return function () {
+    seed |= 0
+    seed = (seed + 0x6d2b79f5) | 0
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function rimRadius(a) {
+  return ISLAND_R + 2.6 * Math.sin(3 * a + 0.4) + 1.6 * Math.sin(5 * a + 1.3) + 0.9 * Math.sin(9 * a + 2.1)
+}
+
+function distToSegment(px, pz, ax, az, bx, bz) {
+  const dx = bx - ax
+  const dz = bz - az
+  const len2 = dx * dx + dz * dz
+  const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / len2))
+  return Math.hypot(px - (ax + dx * t), pz - (az + dz * t))
+}
+
+const STREAM_ANGLE = Math.atan2(LAKE.z, LAKE.x)
+const STREAM_DIR = { x: Math.cos(STREAM_ANGLE), z: Math.sin(STREAM_ANGLE) }
+const RIM_AT_STREAM = rimRadius(STREAM_ANGLE)
+const STREAM = {
+  ax: LAKE.x + STREAM_DIR.x * (LAKE.r - 0.5),
+  az: LAKE.z + STREAM_DIR.z * (LAKE.r - 0.5),
+  bx: STREAM_DIR.x * RIM_AT_STREAM * 1.02,
+  bz: STREAM_DIR.z * RIM_AT_STREAM * 1.02,
+}
+
+const castleSE = (x, z) => {
+  const dx = x - CASTLE.x
+  const dz = z - CASTLE.z
+  return Math.pow(dx ** 4 + dz ** 4, 0.25)
+}
+
+function pathDistance(x, z) {
+  let d = Infinity
+  for (const line of PATHS) {
+    for (let i = 0; i < line.length - 1; i++) {
+      d = Math.min(d, distToSegment(x, z, line[i][0], line[i][1], line[i + 1][0], line[i + 1][1]))
+    }
+  }
+  return d
+}
+
+function fieldUV(x, z) {
+  const dx = x - FIELD.x
+  const dz = z - FIELD.z
+  const c = Math.cos(-FIELD.rot)
+  const s = Math.sin(-FIELD.rot)
+  return { u: dx * c - dz * s, v: dx * s + dz * c }
+}
+
+function terrainH(x, z) {
+  const dl = Math.hypot(x - LAKE.x, z - LAKE.z)
+  const calm = 1 - 0.8 * smoothstep(12, 6, dl)
+  let h =
+    1.1 +
+    calm *
+      (0.45 * Math.sin(x * 0.17 + 1.3) * Math.cos(z * 0.14 - 0.6) +
+        0.22 * Math.sin(x * 0.43 + z * 0.37) +
+        0.12 * Math.sin(z * 0.9 - x * 0.3))
+  h += 6.8 * gauss(x - HILL.x, z - HILL.z, 6.5)
+  h += 0.35 * Math.sin(x * 1.3 + z * 0.7) * gauss(x - HILL.x, z - HILL.z, 6)
+  h += 1.4 * gauss(x - FOREST.x, z - FOREST.z, 8)
+  h -= 2.0 * smoothstep(9, 3.5, dl)
+  const ds = distToSegment(x, z, STREAM.ax, STREAM.az, STREAM.bx, STREAM.bz)
+  h -= 0.7 * smoothstep(2.2, 0.5, ds)
+  const se = castleSE(x, z)
+  h = lerp(h, PLATEAU, smoothstep(17.5, 14.5, se))
+  h -= 1.5 * smoothstep(11.2, 11.9, se) * smoothstep(13.6, 12.9, se)
+  const r = Math.hypot(x, z)
+  const a = Math.atan2(z, x)
+  h *= smoothstep(1.0, 0.8, r / rimRadius(a))
+  return h
+}
+
+const COL = {
+  grass: new THREE.Color('#a9d08e'),
+  grassDeep: new THREE.Color('#8cbf7d'),
+  meadow: new THREE.Color('#d3e59c'),
+  forest: new THREE.Color('#7fae78'),
+  rock: new THREE.Color('#c2bacb'),
+  rockDark: new THREE.Color('#a69fb6'),
+  sand: new THREE.Color('#eedfb8'),
+  lakeBed: new THREE.Color('#93c4bb'),
+  dirt: new THREE.Color('#dfc8a0'),
+  cobble: new THREE.Color('#e1d8c8'),
+  cobble2: new THREE.Color('#d3c8b5'),
+  wheat: new THREE.Color('#ecc96f'),
+  wheat2: new THREE.Color('#f5de98'),
+  moat: new THREE.Color('#9dbba6'),
+}
+
+function terrainColor(x, z, h, out) {
+  out.copy(COL.grass).lerp(COL.grassDeep, (0.5 + 0.5 * Math.sin(x * 0.21 + Math.cos(z * 0.17) * 2)) * 0.55)
+  out.lerp(COL.meadow, gauss(x - MEADOW.x, z - MEADOW.z, 6.5) * 0.85)
+  out.lerp(COL.forest, smoothstep(12, 6, Math.hypot(x - FOREST.x, z - FOREST.z)) * 0.9)
+  const hill = gauss(x - HILL.x, z - HILL.z, 6.5)
+  const rockMask = smoothstep(0.32, 0.62, hill)
+  if (rockMask > 0) {
+    const band = Math.sin(h * 3.2 + x * 0.3) > 0.2 ? COL.rockDark : COL.rock
+    out.lerp(band, rockMask)
+  }
+  const { u, v } = fieldUV(x, z)
+  const fieldMask = smoothstep(FIELD.hu + 0.3, FIELD.hu - 0.1, Math.abs(u)) * smoothstep(FIELD.hv + 0.3, FIELD.hv - 0.1, Math.abs(v))
+  if (fieldMask > 0) {
+    out.lerp(Math.sin(v * 5) > 0 ? COL.wheat : COL.wheat2, fieldMask)
+  }
+  const dl = Math.hypot(x - LAKE.x, z - LAKE.z)
+  if (dl < 10.5) {
+    out.lerp(COL.sand, smoothstep(LAKE_LEVEL + 0.45, LAKE_LEVEL + 0.1, h))
+    out.lerp(COL.lakeBed, smoothstep(LAKE_LEVEL, LAKE_LEVEL - 0.5, h))
+  }
+  const ds = distToSegment(x, z, STREAM.ax, STREAM.az, STREAM.bx, STREAM.bz)
+  out.lerp(COL.sand, smoothstep(1.6, 0.9, ds) * 0.8)
+  const se = castleSE(x, z)
+  if (se > 10.8 && se < 14) out.lerp(COL.moat, smoothstep(PLATEAU - 0.3, PLATEAU - 0.9, h))
+  out.lerp(COL.dirt, smoothstep(1.3, 0.7, pathDistance(x, z)))
+  const cx = x - CASTLE.x
+  const cz = z - CASTLE.z
+  if (Math.abs(cx) < 8.6 && Math.abs(cz) < 8.6) {
+    const checker = (Math.floor(cx * 1.2) + Math.floor(cz * 1.2)) % 2 === 0
+    out.copy(checker ? COL.cobble : COL.cobble2)
+  }
+  return out
+}
+
+const TIME_PRESETS = {
+  day: {
+    skyTop: '#8fb9e3', skyHorizon: '#fde9d6', skyBottom: '#f4dbe6', fog: '#f3e6e0',
+    sunColor: '#fff3df', sunIntensity: 2.3, sunPos: [45, 70, 35],
+    hemiSky: '#e3f0ff', hemiGround: '#d2c0a4', hemiIntensity: 1.35,
+    windows: 0.0, stars: 0, lamps: 0, fireflies: 0.35, crystals: 0.35,
+    disc: '#fff6dc', discSize: 14, glow: 0.35,
+  },
+  dusk: {
+    skyTop: '#6f80c2', skyHorizon: '#ffc39a', skyBottom: '#f1a9a6', fog: '#f4c3ad',
+    sunColor: '#ffc28a', sunIntensity: 1.7, sunPos: [70, 16, -60],
+    hemiSky: '#ffd9c4', hemiGround: '#7e6c8e', hemiIntensity: 1.0,
+    windows: 0.75, stars: 0.25, lamps: 0.6, fireflies: 0.6, crystals: 0.7,
+    disc: '#ffd39a', discSize: 20, glow: 0.9,
+  },
+  night: {
+    skyTop: '#101c40', skyHorizon: '#33467d', skyBottom: '#1d2752', fog: '#2a3866',
+    sunColor: '#b9c9ff', sunIntensity: 0.75, sunPos: [-40, 60, 30],
+    hemiSky: '#7385c2', hemiGround: '#2c2744', hemiIntensity: 0.75,
+    windows: 1.6, stars: 1, lamps: 1, fireflies: 1, crystals: 1.4,
+    disc: '#f4f1ff', discSize: 9, glow: 0.25,
+  },
+}
+
+function circleTexture() {
+  const c = document.createElement('canvas')
+  c.width = c.height = 64
+  const g = c.getContext('2d')
+  const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32)
+  grd.addColorStop(0, 'rgba(255,255,255,1)')
+  grd.addColorStop(0.4, 'rgba(255,255,255,0.75)')
+  grd.addColorStop(1, 'rgba(255,255,255,0)')
+  g.fillStyle = grd
+  g.fillRect(0, 0, 64, 64)
+  const tex = new THREE.CanvasTexture(c)
+  tex.colorSpace = THREE.SRGBColorSpace
+  return tex
+}
+
+function starShape(R, r) {
+  const s = new THREE.Shape()
+  for (let i = 0; i < 10; i++) {
+    const a = Math.PI / 2 + (i * Math.PI) / 5
+    const rad = i % 2 === 0 ? R : r
+    const x = Math.cos(a) * rad
+    const y = Math.sin(a) * rad
+    if (i === 0) s.moveTo(x, y)
+    else s.lineTo(x, y)
+  }
+  s.closePath()
+  return s
+}
+
+export function createFloatingCastle(container, options = {}) {
+  const { onReady } = options
+  const rand = mulberry32(20261021)
+  const R = (a, b) => a + rand() * (b - a)
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+  renderer.setSize(container.clientWidth || 1, container.clientHeight || 1)
+  renderer.shadowMap.enabled = true
+  renderer.shadowMap.type = THREE.PCFShadowMap
+  renderer.domElement.style.display = 'block'
+  renderer.domElement.style.width = '100%'
+  renderer.domElement.style.height = '100%'
+  renderer.domElement.style.touchAction = 'none'
+  container.appendChild(renderer.domElement)
+
+  const scene = new THREE.Scene()
+  scene.fog = new THREE.Fog('#f3e6e0', 110, 460)
+  const camera = new THREE.PerspectiveCamera(42, (container.clientWidth || 1) / (container.clientHeight || 1), 0.1, 1500)
+  camera.position.set(62, 40, 68)
+
+  const controls = new OrbitControls(camera, renderer.domElement)
+  controls.enableDamping = true
+  controls.dampingFactor = 0.06
+  controls.target.set(0, 0, 0)
+  controls.minDistance = 1.5
+  controls.maxDistance = 190
+  controls.screenSpacePanning = true
+  controls.autoRotate = true
+  controls.autoRotateSpeed = 0.35
+
+  // ---------- materials ----------
+  const gradientMap = new THREE.DataTexture(new Uint8Array([120, 175, 222, 255]), 4, 1, THREE.RedFormat)
+  gradientMap.minFilter = THREE.NearestFilter
+  gradientMap.magFilter = THREE.NearestFilter
+  gradientMap.generateMipmaps = false
+  gradientMap.needsUpdate = true
+
+  const matCache = new Map()
+  const mat = (color, extra = {}) => {
+    const key = color + JSON.stringify(extra)
+    if (!matCache.has(key)) matCache.set(key, new THREE.MeshToonMaterial({ color, gradientMap, ...extra }))
+    return matCache.get(key)
+  }
+  const M = {
+    stone: mat('#f1e6d2'),
+    stoneDark: mat('#dccdb2'),
+    stoneWarm: mat('#e8d8bd'),
+    floor: mat('#cfc1aa'),
+    woodFloor: mat('#c99f72'),
+    roofBlue: mat('#7f9ccb'),
+    roofRose: mat('#da938b'),
+    thatch: mat('#ddbb72'),
+    wood: mat('#a97c56'),
+    woodDark: mat('#7f5c40'),
+    plaster: mat('#f6eddb'),
+    gold: mat('#eac35e', { emissive: '#6b4c0c', emissiveIntensity: 0.35 }),
+    carpet: mat('#b9545e'),
+    bannerBlue: mat('#5470ab', { side: THREE.DoubleSide }),
+    bannerRose: mat('#c96d76', { side: THREE.DoubleSide }),
+    white: mat('#fbf6ec'),
+    dark: mat('#3c3546'),
+    slit: mat('#5c5870'),
+    metal: mat('#bcc3d1'),
+    iron: mat('#6d6f7c'),
+    leaf: mat('#86b874'),
+    pine: mat('#ffffff'),
+    trunk: mat('#94704f'),
+    instWhite: mat('#ffffff'),
+    stoneDouble: mat('#f1e6d2', { side: THREE.DoubleSide }),
+  }
+  const windowMat = new THREE.MeshToonMaterial({ color: '#5a6a8e', emissive: '#ffcf80', emissiveIntensity: 0, gradientMap })
+  const crystalMat = new THREE.MeshToonMaterial({ color: '#cdd5ff', emissive: '#9fb0ff', emissiveIntensity: 0.4, gradientMap })
+  const fireMat = new THREE.MeshBasicMaterial({ color: '#ffb25a' })
+  const flameMat = new THREE.MeshBasicMaterial({ color: '#ffe08a' })
+  const glassMat = new THREE.MeshToonMaterial({ color: '#dff4ff', transparent: true, opacity: 0.28, depthWrite: false, gradientMap })
+  const waterMat = new THREE.MeshToonMaterial({ color: '#9fd3e3', transparent: true, opacity: 0.86, gradientMap })
+  const smokeMat = new THREE.MeshToonMaterial({ color: '#f3f0ec', transparent: true, opacity: 0.6, depthWrite: false, gradientMap })
+  const cloudMat = new THREE.MeshToonMaterial({ color: '#fffaf3', gradientMap })
+  const lampMat = new THREE.MeshBasicMaterial({ color: '#7d7a6e' })
+
+  // ---------- geometry helpers ----------
+  const geoCache = new Map()
+  const geo = (key, make) => {
+    if (!geoCache.has(key)) geoCache.set(key, make())
+    return geoCache.get(key)
+  }
+  const box = (w, h, d, m) => new THREE.Mesh(geo(`b${w}|${h}|${d}`, () => new THREE.BoxGeometry(w, h, d)), m)
+  const cyl = (rt, rb, h, m, seg = 16) =>
+    new THREE.Mesh(geo(`c${rt}|${rb}|${h}|${seg}`, () => new THREE.CylinderGeometry(rt, rb, h, seg)), m)
+  const cone = (r, h, m, seg = 16) => new THREE.Mesh(geo(`k${r}|${h}|${seg}`, () => new THREE.ConeGeometry(r, h, seg)), m)
+  const sph = (r, m, ws = 16, hs = 12) => new THREE.Mesh(geo(`s${r}|${ws}|${hs}`, () => new THREE.SphereGeometry(r, ws, hs)), m)
+
+  function put(parent, mesh, x = 0, y = 0, z = 0, o = {}) {
+    mesh.position.set(x, y, z)
+    mesh.rotation.set(o.rx || 0, o.ry || 0, o.rz || 0)
+    if (o.s) mesh.scale.set(...(Array.isArray(o.s) ? o.s : [o.s, o.s, o.s]))
+    const shadow = o.shadow !== false
+    mesh.castShadow = shadow
+    mesh.receiveShadow = true
+    parent.add(mesh)
+    return mesh
+  }
+
+  const UP = new THREE.Vector3(0, 1, 0)
+  function rod(parent, p1, p2, r, m, seg = 6) {
+    const dir = new THREE.Vector3().subVectors(p2, p1)
+    const len = dir.length()
+    const mesh = new THREE.Mesh(geo(`rod${r}|${seg}`, () => new THREE.CylinderGeometry(r, r, 1, seg)), m)
+    mesh.scale.set(1, len, 1)
+    mesh.position.copy(p1).addScaledVector(dir, 0.5)
+    mesh.quaternion.setFromUnitVectors(UP, dir.normalize())
+    parent.add(mesh)
+    return mesh
+  }
+
+  function gableRoof(width, depth, height, m, overhang = 0.35) {
+    const key = `gable${width}|${depth}|${height}|${overhang}`
+    const g = geo(key, () => {
+      const s = new THREE.Shape()
+      s.moveTo(-width / 2 - overhang, 0)
+      s.lineTo(width / 2 + overhang, 0)
+      s.lineTo(0, height)
+      s.closePath()
+      const d = depth + overhang * 2
+      const eg = new THREE.ExtrudeGeometry(s, { depth: d, bevelEnabled: false })
+      eg.translate(0, 0, -d / 2)
+      return eg
+    })
+    return new THREE.Mesh(g, m)
+  }
+
+  function archWall(w, h, depth, openW, openH, m) {
+    const key = `arch${w}|${h}|${depth}|${openW}|${openH}`
+    const g = geo(key, () => {
+      const r = openW / 2
+      const s = new THREE.Shape()
+      s.moveTo(-w / 2, 0)
+      s.lineTo(-r, 0)
+      s.lineTo(-r, openH - r)
+      s.absarc(0, openH - r, r, Math.PI, 0, true)
+      s.lineTo(r, 0)
+      s.lineTo(w / 2, 0)
+      s.lineTo(w / 2, h)
+      s.lineTo(-w / 2, h)
+      s.closePath()
+      const eg = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false })
+      eg.translate(0, 0, -depth / 2)
+      return eg
+    })
+    return new THREE.Mesh(g, m)
+  }
+
+  const instances = {}
+  const tmpQ = new THREE.Quaternion()
+  const tmpE = new THREE.Euler()
+  function addInstance(type, x, y, z, sx, sy, sz, ry = 0, color = null, rx = 0, rz = 0) {
+    if (!instances[type]) instances[type] = []
+    tmpE.set(rx, ry, rz)
+    tmpQ.setFromEuler(tmpE)
+    const m = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), tmpQ, new THREE.Vector3(sx, sy, sz))
+    instances[type].push({ m, c: color })
+  }
+  function flushInstances(type, geometry, material, cast = true) {
+    const items = instances[type] || []
+    if (!items.length) return null
+    const im = new THREE.InstancedMesh(geometry, material, items.length)
+    items.forEach((it, i) => {
+      im.setMatrixAt(i, it.m)
+      if (it.c) im.setColorAt(i, it.c)
+    })
+    im.instanceMatrix.needsUpdate = true
+    if (im.instanceColor) im.instanceColor.needsUpdate = true
+    im.castShadow = cast
+    im.receiveShadow = true
+    im.computeBoundingSphere()
+    scene.add(im)
+    return im
+  }
+
+  const animations = []
+  const onFrame = (fn) => animations.push(fn)
+  const flags = []
+  const smokeEmitters = []
+  const pointLights = []
+
+  function addFlag(parent, x, y, z, color, w = 1.3, h = 0.75, poleH = 1.6) {
+    put(parent, cyl(0.04, 0.04, poleH, M.woodDark, 6), x, y + poleH / 2, z)
+    put(parent, sph(0.07, M.gold, 8, 6), x, y + poleH + 0.05, z)
+    const g = new THREE.PlaneGeometry(w, h, 12, 4)
+    g.translate(w / 2, 0, 0)
+    const mesh = new THREE.Mesh(g, color)
+    mesh.position.set(x, y + poleH - h / 2 - 0.05, z)
+    mesh.castShadow = true
+    parent.add(mesh)
+    flags.push({ mesh, base: g.attributes.position.array.slice(), w, phase: rand() * TAU })
+  }
+
+  function addSmoke(parent, x, y, z, scale = 1) {
+    const puffs = []
+    for (let i = 0; i < 5; i++) {
+      const p = put(parent, sph(0.35, smokeMat, 10, 8), x, y, z, { shadow: false })
+      puffs.push(p)
+    }
+    smokeEmitters.push({ puffs, x, y, z, scale, offset: rand() * 5 })
+  }
+
+  function addWindow(parent, x, y, z, w, h, depth, axis = 'z') {
+    const m = axis === 'z' ? box(w, h, depth, windowMat) : box(depth, h, w, windowMat)
+    put(parent, m, x, y, z, { shadow: false })
+    const sill = axis === 'z' ? box(w + 0.16, 0.08, depth + 0.1, M.stoneDark) : box(depth + 0.1, 0.08, w + 0.16, M.stoneDark)
+    put(parent, sill, x, y - h / 2 - 0.04, z, { shadow: false })
+    return m
+  }
+
+  function addPointLight(parent, x, y, z, color, intensity, distance, flicker = false) {
+    const l = new THREE.PointLight(color, intensity, distance, 1.6)
+    l.position.set(x, y, z)
+    parent.add(l)
+    pointLights.push({ light: l, base: intensity, flicker, phase: rand() * 10 })
+    return l
+  }
+
+  // ---------- characters ----------
+  const SKIN = '#f7dcc8'
+  function person(o = {}) {
+    const { coat = '#7d9bc9', skin = SKIN, hair = '#8a5a3c', pants = '#6b5a4a', dress = false, sitting = false, s = 1, shoes = '#5a4636' } = o
+    const g = new THREE.Group()
+    const inner = new THREE.Group()
+    inner.scale.setScalar(1.18 * s)
+    g.add(inner)
+    const mC = mat(coat)
+    const mS = mat(skin)
+    const legs = []
+    if (!dress) {
+      for (const side of [-1, 1]) {
+        const hip = new THREE.Group()
+        hip.position.set(side * 0.09, 0.52, 0)
+        inner.add(hip)
+        put(hip, cyl(0.065, 0.06, 0.5, mat(pants), 8), 0, -0.25, 0)
+        put(hip, box(0.11, 0.07, 0.18, mat(shoes)), 0, -0.5, 0.03)
+        if (sitting) hip.rotation.x = -Math.PI / 2
+        legs.push(hip)
+      }
+    }
+    const torso = dress ? cyl(0.13, 0.34, 0.92, mC, 14) : cyl(0.15, 0.18, 0.52, mC, 12)
+    put(inner, torso, 0, dress ? 0.46 : 0.77, 0)
+    const arms = []
+    for (const side of [-1, 1]) {
+      const sh = new THREE.Group()
+      sh.position.set(side * 0.19, 0.98, 0)
+      sh.rotation.z = side * 0.12
+      inner.add(sh)
+      put(sh, cyl(0.05, 0.045, 0.44, mC, 8), 0, -0.2, 0)
+      put(sh, sph(0.05, mS, 8, 6), 0, -0.44, 0)
+      arms.push(sh)
+    }
+    const head = new THREE.Group()
+    head.position.y = 1.2
+    inner.add(head)
+    put(head, sph(0.17, mS, 18, 14), 0, 0, 0)
+    const hairCap = new THREE.Mesh(
+      geo('haircap', () => new THREE.SphereGeometry(0.182, 18, 10, 0, TAU, 0, Math.PI * 0.55)),
+      mat(hair),
+    )
+    put(head, hairCap, 0, 0.015, -0.01, { rx: -0.25 })
+    put(head, sph(0.022, M.dark, 6, 6), -0.06, 0.01, 0.155, { shadow: false })
+    put(head, sph(0.022, M.dark, 6, 6), 0.06, 0.01, 0.155, { shadow: false })
+    put(head, sph(0.03, mat('#f3b2a8'), 6, 6), -0.1, -0.05, 0.125, { shadow: false })
+    put(head, sph(0.03, mat('#f3b2a8'), 6, 6), 0.1, -0.05, 0.125, { shadow: false })
+    return { g, inner, arms, legs, head, s: 1.18 * s }
+  }
+  const crown = (p, small = false) => {
+    const k = small ? 0.75 : 1
+    const ring = new THREE.Mesh(
+      geo(`crown${k}`, () => new THREE.CylinderGeometry(0.14 * k, 0.13 * k, 0.1 * k, 10, 1, true)),
+      mat('#eac35e', { emissive: '#6b4c0c', emissiveIntensity: 0.35, side: THREE.DoubleSide }),
+    )
+    put(p.head, ring, 0, 0.17, 0)
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * TAU
+      put(p.head, cone(0.025 * k, 0.07 * k, M.gold, 5), Math.cos(a) * 0.13 * k, 0.24, Math.sin(a) * 0.13 * k)
+    }
+  }
+  const cape = (p, color) => put(p.inner, box(0.4, 0.88, 0.03, mat(color)), 0, 0.6, -0.18, { rx: 0.12 })
+  const pointyHat = (p, color) => {
+    put(p.head, cyl(0.27, 0.27, 0.025, mat(color), 16), 0, 0.13, 0)
+    put(p.head, cone(0.17, 0.52, mat(color), 14), 0, 0.4, -0.02, { rx: -0.12 })
+    const st = new THREE.Mesh(geo('tinystar', () => new THREE.ShapeGeometry(starShape(0.05, 0.022))), M.gold)
+    put(p.head, st, 0, 0.36, 0.13, { shadow: false })
+  }
+  const helmet = (p) => {
+    const cap = new THREE.Mesh(geo('helm', () => new THREE.SphereGeometry(0.195, 16, 10, 0, TAU, 0, Math.PI * 0.6)), M.metal)
+    put(p.head, cap, 0, 0.01, 0)
+    put(p.head, cone(0.04, 0.22, mat('#c95f63'), 6), 0, 0.27, -0.03, { rx: -0.5 })
+  }
+  const strawHat = (p) => {
+    put(p.head, cyl(0.31, 0.31, 0.025, mat('#e8c877'), 16), 0, 0.11, 0)
+    put(p.head, cyl(0.15, 0.17, 0.14, mat('#e8c877'), 12), 0, 0.18, 0)
+  }
+  const flatCap = (p, color) => put(p.head, cyl(0.19, 0.2, 0.08, mat(color), 14), 0, 0.15, 0.02, { rx: -0.15 })
+  const beard = (p, color = '#f3efe7', long = false) =>
+    put(p.head, cone(0.12, long ? 0.42 : 0.2, mat(color), 10), 0, long ? -0.3 : -0.18, 0.08, { rx: Math.PI + 0.15 })
+  const apron = (p, color) => put(p.inner, box(0.26, 0.42, 0.03, mat(color)), 0, 0.66, 0.175)
+
+  function sheep() {
+    const g = new THREE.Group()
+    const wool = mat('#fcf9f2')
+    put(g, sph(0.38, wool), 0, 0.55, 0, { s: [1, 0.82, 1.25] })
+    for (let i = 0; i < 5; i++) put(g, sph(0.2, wool, 10, 8), R(-0.25, 0.25), R(0.75, 0.85), R(-0.35, 0.35))
+    const head = new THREE.Group()
+    head.position.set(0, 0.62, 0.5)
+    g.add(head)
+    put(head, sph(0.15, mat('#5e5652')), 0, 0, 0.05, { s: [1, 1, 1.25] })
+    put(head, sph(0.12, wool, 10, 8), 0, 0.1, -0.04)
+    for (const sx of [-1, 1]) put(head, box(0.12, 0.04, 0.06, mat('#5e5652')), sx * 0.14, 0.02, 0)
+    for (const [lx, lz] of [[-0.18, 0.28], [0.18, 0.28], [-0.18, -0.28], [0.18, -0.28]])
+      put(g, cyl(0.045, 0.04, 0.36, mat('#5e5652'), 6), lx, 0.18, lz)
+    return { g, head }
+  }
+
+  function fox() {
+    const g = new THREE.Group()
+    const orange = mat('#e98d4e')
+    const cream = mat('#fbf1e3')
+    put(g, sph(0.2, orange), 0, 0.26, 0, { s: [0.9, 1.25, 0.85] })
+    put(g, sph(0.12, cream, 10, 8), 0, 0.3, 0.1, { s: [0.9, 1.3, 0.7] })
+    put(g, sph(0.14, orange), 0, 0.58, 0.04)
+    put(g, cone(0.07, 0.18, cream, 8), 0, 0.55, 0.2, { rx: Math.PI / 2 })
+    put(g, sph(0.025, M.dark, 6, 6), 0, 0.56, 0.29)
+    for (const sx of [-1, 1]) put(g, cone(0.05, 0.14, orange, 6), sx * 0.08, 0.74, 0.02)
+    for (const sx of [-1, 1]) put(g, cyl(0.03, 0.03, 0.22, orange, 6), sx * 0.08, 0.11, 0.12)
+    const tail = new THREE.Group()
+    tail.position.set(0, 0.12, -0.15)
+    g.add(tail)
+    put(tail, cone(0.1, 0.5, orange, 10), 0.12, 0, -0.18, { rx: -Math.PI / 2 - 0.2, rz: 0.7 })
+    put(tail, sph(0.06, cream, 8, 6), 0.28, 0.06, -0.38)
+    return { g, tail }
+  }
+
+  function chicken() {
+    const g = new THREE.Group()
+    const body = new THREE.Group()
+    g.add(body)
+    put(body, sph(0.13, M.white, 10, 8), 0, 0.17, 0, { s: [0.9, 0.9, 1.2] })
+    put(body, sph(0.075, M.white, 8, 6), 0, 0.3, 0.12)
+    put(body, box(0.02, 0.05, 0.06, mat('#d65b55')), 0, 0.37, 0.12)
+    put(body, cone(0.02, 0.06, mat('#e9b04a'), 5), 0, 0.29, 0.21, { rx: Math.PI / 2 })
+    for (const sx of [-1, 1]) put(g, cyl(0.01, 0.01, 0.1, mat('#e9b04a'), 4), sx * 0.04, 0.05, 0)
+    return { g, body }
+  }
+
+  // ---------- sky ----------
+  const skyUniforms = {
+    uTop: { value: new THREE.Color() },
+    uHorizon: { value: new THREE.Color() },
+    uBottom: { value: new THREE.Color() },
+    uSunDir: { value: new THREE.Vector3(0, 1, 0) },
+    uSunColor: { value: new THREE.Color() },
+    uGlow: { value: 0.3 },
+  }
+  const sky = new THREE.Mesh(
+    new THREE.SphereGeometry(600, 32, 16),
+    new THREE.ShaderMaterial({
+      uniforms: skyUniforms,
+      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
+      vertexShader: `varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+      fragmentShader: `
+        uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uBottom; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uGlow;
+        varying vec3 vDir;
+        void main(){
+          vec3 d = normalize(vDir);
+          float h = d.y;
+          vec3 col = h > 0.0 ? mix(uHorizon, uTop, pow(h, 0.55)) : mix(uHorizon, uBottom, pow(-h, 0.6));
+          float s = max(dot(d, normalize(uSunDir)), 0.0);
+          col += uSunColor * (pow(s, 18.0) * 0.55 + pow(s, 3.0) * 0.18) * uGlow;
+          gl_FragColor = vec4(col, 1.0);
+          #include <colorspace_fragment>
+        }`,
+    }),
+  )
+  sky.renderOrder = -10
+  scene.add(sky)
+
+  const circleTex = circleTexture()
+  const starGeo = new THREE.BufferGeometry()
+  {
+    const arr = []
+    for (let i = 0; i < 1400; i++) {
+      const u = rand() * 2 - 1
+      const th = rand() * TAU
+      const rr = Math.sqrt(1 - u * u)
+      const y = Math.abs(u) * 0.95 + 0.05
+      arr.push(Math.cos(th) * rr * 520, (u > -0.3 ? y : u) * 520, Math.sin(th) * rr * 520)
+    }
+    starGeo.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3))
+  }
+  const starMat = new THREE.PointsMaterial({ size: 2.4, sizeAttenuation: false, map: circleTex, transparent: true, opacity: 0, depthWrite: false, fog: false, color: '#fff7e0' })
+  const stars = new THREE.Points(starGeo, starMat)
+  scene.add(stars)
+
+  const discMat = new THREE.MeshBasicMaterial({ color: '#fff6dc', fog: false, transparent: true, depthWrite: false })
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(1, 40), discMat)
+  scene.add(disc)
+
+  // ---------- lights ----------
+  const hemi = new THREE.HemisphereLight('#e3f0ff', '#d2c0a4', 1.3)
+  scene.add(hemi)
+  const sun = new THREE.DirectionalLight('#fff3df', 2.3)
+  sun.castShadow = true
+  sun.shadow.mapSize.set(2048, 2048)
+  sun.shadow.camera.left = -48
+  sun.shadow.camera.right = 48
+  sun.shadow.camera.top = 48
+  sun.shadow.camera.bottom = -48
+  sun.shadow.camera.near = 1
+  sun.shadow.camera.far = 320
+  sun.shadow.bias = -0.0006
+  sun.shadow.normalBias = 0.03
+  sun.shadow.radius = 3
+  scene.add(sun)
+  scene.add(sun.target)
+
+  // ---------- island ----------
+  {
+    const RINGS = 84
+    const SEG = 240
+    const pos = []
+    const col = []
+    const idx = []
+    const c = new THREE.Color()
+    for (let i = 0; i <= RINGS; i++) {
+      const t = i / RINGS
+      for (let j = 0; j < SEG; j++) {
+        const a = (j / SEG) * TAU
+        const rr = rimRadius(a) * t
+        const x = Math.cos(a) * rr
+        const z = Math.sin(a) * rr
+        const h = terrainH(x, z)
+        pos.push(x, h, z)
+        terrainColor(x, z, h, c)
+        col.push(c.r, c.g, c.b)
+      }
+    }
+    for (let i = 0; i < RINGS; i++) {
+      for (let j = 0; j < SEG; j++) {
+        const a = i * SEG + j
+        const b = (i + 1) * SEG + j
+        const cc = (i + 1) * SEG + ((j + 1) % SEG)
+        const d = i * SEG + ((j + 1) % SEG)
+        idx.push(a, d, cc, a, cc, b)
+      }
+    }
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3))
+    g.setIndex(idx)
+    g.computeVertexNormals()
+    const top = new THREE.Mesh(g, new THREE.MeshToonMaterial({ color: '#ffffff', vertexColors: true, gradientMap }))
+    top.receiveShadow = true
+    top.castShadow = true
+    scene.add(top)
+  }
+
+  const underPoint = (a, s, out) => {
+    const rim = rimRadius(a)
+    const prof = Math.pow(1 - s, 1.35) * (1 + 0.22 * Math.sin(s * Math.PI))
+    const amp = smoothstep(0, 0.22, s)
+    const n = 1 + amp * (0.08 * Math.sin(6 * a + s * 7) + 0.05 * Math.sin(11 * a - s * 13 + 1) + 0.035 * Math.sin(23 * a + s * 5))
+    const rr = rim * prof * n
+    return out.set(Math.cos(a) * rr + s * s * 4, -Math.pow(s, 0.9) * 30, Math.sin(a) * rr - s * s * 3)
+  }
+  {
+    const K = 34
+    const SEG = 240
+    const pos = []
+    const col = []
+    const idx = []
+    const v = new THREE.Vector3()
+    const lip = new THREE.Color('#8fb878')
+    const soil = new THREE.Color('#b48d6b')
+    const rockA = new THREE.Color('#ab9fb9')
+    const rockB = new THREE.Color('#c9b195')
+    const deep = new THREE.Color('#857b9b')
+    const c = new THREE.Color()
+    for (let k = 0; k <= K; k++) {
+      const s = k / K
+      for (let j = 0; j < SEG; j++) {
+        const a = (j / SEG) * TAU
+        underPoint(a, s, v)
+        pos.push(v.x, v.y, v.z)
+        const d = -v.y
+        if (d < 0.6) c.copy(lip)
+        else if (d < 3.2) c.copy(soil).lerp(rockB, smoothstep(1.5, 3.2, d))
+        else {
+          const band = 0.5 + 0.5 * Math.sin(d * 0.85 + Math.sin(a * 3) * 0.9)
+          c.copy(rockA).lerp(rockB, band > 0.55 ? 1 : 0.15).lerp(deep, smoothstep(10, 28, d))
+        }
+        col.push(c.r, c.g, c.b)
+      }
+    }
+    for (let k = 0; k < K; k++) {
+      for (let j = 0; j < SEG; j++) {
+        const a = k * SEG + j
+        const b = (k + 1) * SEG + j
+        const cc = (k + 1) * SEG + ((j + 1) % SEG)
+        const d = k * SEG + ((j + 1) % SEG)
+        idx.push(a, d, cc, a, cc, b)
+      }
+    }
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3))
+    g.setIndex(idx)
+    g.computeVertexNormals()
+    const under = new THREE.Mesh(g, new THREE.MeshToonMaterial({ color: '#ffffff', vertexColors: true, gradientMap }))
+    under.receiveShadow = true
+    scene.add(under)
+
+    const rootMat = mat('#8d6c52')
+    const vineMat = mat('#7fb06d')
+    for (let i = 0; i < 70; i++) {
+      const a = rand() * TAU
+      const s = R(0.03, 0.16)
+      underPoint(a, s, v)
+      const len = R(1.5, 6)
+      const inward = 0.92
+      const p1 = new THREE.Vector3(v.x * inward, v.y + 0.2, v.z * inward)
+      const p2 = new THREE.Vector3(v.x * (inward + R(-0.02, 0.03)), v.y - len, v.z * (inward + R(-0.02, 0.03)))
+      rod(scene, p1, p2, R(0.03, 0.07), i % 3 === 0 ? vineMat : rootMat, 5)
+      if (i % 3 === 0) {
+        for (let l = 0; l < 3; l++) {
+          const t = R(0.2, 1)
+          put(scene, sph(0.12, M.leaf, 6, 5), lerp(p1.x, p2.x, t), lerp(p1.y, p2.y, t), lerp(p1.z, p2.z, t), { shadow: false, s: [1, 0.6, 1] })
+        }
+      }
+    }
+    const octa = new THREE.OctahedronGeometry(1, 0)
+    for (let i = 0; i < 14; i++) {
+      const a = rand() * TAU
+      const s = R(0.35, 0.8)
+      underPoint(a, s, v)
+      const n = new THREE.Vector3(Math.cos(a), -0.6, Math.sin(a)).normalize()
+      for (let k = 0; k < 3; k++) {
+        const m = new THREE.Mesh(octa, crystalMat)
+        const sc = R(0.35, 0.7)
+        m.scale.set(sc * 0.45, sc * 1.6, sc * 0.45)
+        const dir = n.clone().add(new THREE.Vector3(R(-0.4, 0.4), R(-0.3, 0.3), R(-0.4, 0.4))).normalize()
+        m.quaternion.setFromUnitVectors(UP, dir)
+        m.position.copy(v).addScaledVector(dir, sc * 0.8)
+        scene.add(m)
+      }
+    }
+    for (let i = 0; i < 10; i++) {
+      const a = rand() * TAU
+      const s = R(0.2, 0.6)
+      underPoint(a, s, v)
+      const rock = new THREE.Mesh(geo('dodeca', () => new THREE.DodecahedronGeometry(1, 0)), mat('#b3a7c0'))
+      const sc = R(0.6, 1.6)
+      rock.scale.set(sc, sc * 1.4, sc)
+      rock.position.set(v.x * 1.05, v.y - R(3, 7), v.z * 1.05)
+      rock.rotation.set(rand() * 3, rand() * 3, 0)
+      scene.add(rock)
+      const baseY = rock.position.y
+      const ph = rand() * TAU
+      onFrame((t) => {
+        rock.position.y = baseY + Math.sin(t * 0.6 + ph) * 0.35
+      })
+    }
+  }
+
+  // ---------- water ----------
+  const waterShader = (fadeBottom, stripes, color = '#a9dcee', foam = '#ffffff') =>
+    new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(color) }, uFoam: { value: new THREE.Color(foam) }, uFade: { value: fadeBottom ? 1 : 0 }, uStripes: { value: stripes } },
+      vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+      fragmentShader: `
+        varying vec2 vUv; uniform float uTime; uniform vec3 uColor; uniform vec3 uFoam; uniform float uFade; uniform float uStripes;
+        float hash(float n){ return fract(sin(n) * 43758.5453); }
+        void main(){
+          float colI = floor(vUv.x * uStripes);
+          float speed = 0.6 + hash(colI) * 0.7;
+          float s = fract(vUv.y * 3.0 - uTime * speed + hash(colI + 3.0));
+          float streak = smoothstep(0.0, 0.2, s) * (1.0 - smoothstep(0.5, 1.0, s));
+          vec3 c = mix(uColor, uFoam, streak * 0.75);
+          float edge = smoothstep(0.0, 0.14, vUv.x) * smoothstep(1.0, 0.86, vUv.x);
+          float fade = mix(1.0, 1.0 - smoothstep(0.35, 1.0, vUv.y), uFade);
+          gl_FragColor = vec4(c, (0.55 + 0.35 * streak) * edge * fade);
+          #include <colorspace_fragment>
+        }`,
+    })
+
+  {
+    const lake = new THREE.Mesh(new THREE.CircleGeometry(LAKE.r + 2, 56), waterMat)
+    lake.rotation.x = -Math.PI / 2
+    lake.position.set(LAKE.x, LAKE_LEVEL, LAKE.z)
+    lake.receiveShadow = true
+    scene.add(lake)
+
+    const outer = 13.8
+    const inner = 11.0
+    const se = (rr, n) => {
+      const pts = []
+      for (let i = 0; i < 96; i++) {
+        const a = (i / 96) * TAU
+        const c = Math.cos(a)
+        const s = Math.sin(a)
+        pts.push(new THREE.Vector2(Math.sign(c) * Math.pow(Math.abs(c), 0.5) * rr, Math.sign(s) * Math.pow(Math.abs(s), 0.5) * rr))
+      }
+      return n ? pts.reverse() : pts
+    }
+    const shape = new THREE.Shape(se(outer, false))
+    shape.holes.push(new THREE.Path(se(inner, true)))
+    const moat = new THREE.Mesh(new THREE.ShapeGeometry(shape), waterMat)
+    moat.rotation.x = -Math.PI / 2
+    moat.position.set(CASTLE.x, MOAT_LEVEL, CASTLE.z)
+    moat.receiveShadow = true
+    scene.add(moat)
+
+    const streamMat = waterShader(false, 6)
+    const N = 32
+    const pos = []
+    const uv = []
+    const idx = []
+    const tx = -STREAM_DIR.z
+    const tz = STREAM_DIR.x
+    for (let i = 0; i <= N; i++) {
+      const t = i / N
+      const x = lerp(STREAM.ax - STREAM_DIR.x * 1.2, STREAM_DIR.x * RIM_AT_STREAM, t)
+      const z = lerp(STREAM.az - STREAM_DIR.z * 1.2, STREAM_DIR.z * RIM_AT_STREAM, t)
+      const w = 0.75 + 0.15 * Math.sin(t * 9)
+      const y = Math.max(terrainH(x, z) + 0.1, i === 0 ? LAKE_LEVEL + 0.02 : 0.08)
+      pos.push(x + tx * w, y, z + tz * w, x - tx * w, y, z - tz * w)
+      uv.push(0, t * 4, 1, t * 4)
+      if (i < N) {
+        const a = i * 2
+        idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2)
+      }
+    }
+    const sg = new THREE.BufferGeometry()
+    sg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    sg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2))
+    sg.setIndex(idx)
+    scene.add(new THREE.Mesh(sg, streamMat))
+
+    const fallMat = waterShader(true, 14)
+    const fpos = []
+    const fuv = []
+    const fidx = []
+    const FN = 40
+    const rx = STREAM_DIR.x * RIM_AT_STREAM
+    const rz = STREAM_DIR.z * RIM_AT_STREAM
+    for (let i = 0; i <= FN; i++) {
+      const u = i / FN
+      const out = 0.2 + 3.2 * Math.sqrt(u)
+      const y = 0.08 - u * 26
+      const w = 0.8 + 1.8 * u
+      const cx = rx + STREAM_DIR.x * out
+      const cz = rz + STREAM_DIR.z * out
+      fpos.push(cx + tx * w, y, cz + tz * w, cx - tx * w, y, cz - tz * w)
+      fuv.push(0, u, 1, u)
+      if (i < FN) {
+        const a = i * 2
+        fidx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2)
+      }
+    }
+    const fg = new THREE.BufferGeometry()
+    fg.setAttribute('position', new THREE.Float32BufferAttribute(fpos, 3))
+    fg.setAttribute('uv', new THREE.Float32BufferAttribute(fuv, 2))
+    fg.setIndex(fidx)
+    scene.add(new THREE.Mesh(fg, fallMat))
+
+    const mistMat = new THREE.MeshToonMaterial({ color: '#ffffff', transparent: true, opacity: 0.35, depthWrite: false, gradientMap })
+    const mist = []
+    for (let i = 0; i < 9; i++) {
+      const m = new THREE.Mesh(geo('mist', () => new THREE.SphereGeometry(1, 12, 10)), mistMat)
+      scene.add(m)
+      mist.push({ m, ph: rand() * 6 })
+    }
+    onFrame((t) => {
+      streamMat.uniforms.uTime.value = t * 0.5
+      fallMat.uniforms.uTime.value = t * 0.9
+      for (const p of mist) {
+        const k = (t * 0.25 + p.ph) % 1
+        const out = 3.4 + k * 2
+        p.m.position.set(rx + STREAM_DIR.x * out + tx * Math.sin(p.ph * 5) * 2, -14 - k * 10, rz + STREAM_DIR.z * out + tz * Math.cos(p.ph * 3) * 2)
+        p.m.scale.setScalar(0.8 + k * 2.4)
+      }
+      mistMat.opacity = 0.28
+    })
+  }
+
+  // ---------- castle ----------
+  const castle = new THREE.Group()
+  castle.position.set(CASTLE.x, PLATEAU, CASTLE.z)
+  scene.add(castle)
+  const cutawayParts = []
+  const interiorGroups = []
+
+  function tower(parent, x, z, o = {}) {
+    const { r = 1.9, h = 7, roof = M.roofBlue, roofH = 3.8, flag = M.bannerBlue, windows = 4 } = o
+    const g = new THREE.Group()
+    g.position.set(x, 0, z)
+    parent.add(g)
+    put(g, cyl(r * 1.16, r * 1.22, 0.7, M.stoneDark, 22), 0, 0.35, 0)
+    put(g, cyl(r, r * 1.06, h, M.stone, 22), 0, h / 2, 0)
+    put(g, cyl(r * 1.15, r * 0.98, 0.55, M.stoneDark, 22), 0, h + 0.1, 0)
+    put(g, cone(r * 1.32, roofH, roof, 22), 0, h + 0.35 + roofH / 2, 0)
+    for (let i = 0; i < windows; i++) {
+      const a = (i / windows) * TAU + 0.4
+      const y = h * (0.35 + 0.28 * (i % 2))
+      const wm = box(0.28, 0.62, 0.2, windowMat)
+      put(g, wm, Math.cos(a) * r, y, Math.sin(a) * r, { ry: Math.PI / 2 - a, shadow: false })
+    }
+    if (flag) addFlag(g, 0, h + 0.3 + roofH - 0.1, 0, flag)
+    return g
+  }
+
+  function wall(x1, z1, x2, z2, nx, nz, h = 4.5, t = 1.2) {
+    const dx = x2 - x1
+    const dz = z2 - z1
+    const L = Math.hypot(dx, dz)
+    const ang = Math.atan2(dz, dx)
+    const mx = (x1 + x2) / 2
+    const mz = (z1 + z2) / 2
+    put(castle, box(L, h, t, M.stone), mx, h / 2, mz, { ry: -ang })
+    put(castle, box(L, 0.25, t + 0.22, M.stoneDark), mx, h - 0.12, mz, { ry: -ang })
+    put(castle, box(L, 0.6, t + 0.3, M.stoneDark), mx, 0.3, mz, { ry: -ang })
+    const ux = dx / L
+    const uz = dz / L
+    for (let d = 2.4; d <= L - 2.4; d += 0.95) {
+      addInstance('merlon', CASTLE.x + x1 + ux * d + nx * (t / 2 - 0.17), PLATEAU + h + 0.3, CASTLE.z + z1 + uz * d + nz * (t / 2 - 0.17), 1, 1, 1, -ang)
+    }
+    for (let d = 3.2; d <= L - 3.2; d += 2.6) {
+      addInstance('slit', CASTLE.x + x1 + ux * d + nx * (t / 2), PLATEAU + 2.4, CASTLE.z + z1 + uz * d + nz * (t / 2), 1, 1, 1, -ang)
+    }
+  }
+
+  const C = 8.5
+  wall(-C, -C, C, -C, 0, -1)
+  wall(C, -C, C, C, 1, 0)
+  wall(-C, C, -C, -C, -1, 0)
+  wall(-C, C, -2.6, C, 0, 1)
+  wall(2.6, C, C, C, 0, 1)
+  tower(castle, -C, -C, { roof: M.roofBlue })
+  tower(castle, -C, C, { roof: M.roofRose, flag: M.bannerRose })
+  tower(castle, C, C, { roof: M.roofBlue })
+
+  // gatehouse
+  tower(castle, -2.6, C + 0.3, { r: 1.5, h: 7.4, roof: M.roofRose, roofH: 3, flag: M.bannerRose, windows: 3 })
+  tower(castle, 2.6, C + 0.3, { r: 1.5, h: 7.4, roof: M.roofRose, roofH: 3, flag: M.bannerRose, windows: 3 })
+  put(castle, archWall(3.6, 6, 2.2, 2.0, 3.3, M.stoneWarm), 0, 0, C + 0.1)
+  for (let x = -1.45; x <= 1.46; x += 0.725) addInstance('merlon', CASTLE.x + x, PLATEAU + 6.3, CASTLE.z + C + 1.05, 1, 1, 1, 0)
+  {
+    const gs = new THREE.Mesh(geo('gatestar', () => new THREE.ShapeGeometry(starShape(0.45, 0.2))), M.gold)
+    put(castle, gs, 0, 4.6, C + 1.22, { shadow: false })
+    for (let i = 0; i < 7; i++) put(castle, box(0.07, 2.4, 0.07, M.iron), -0.84 + i * 0.28, 3.7, C + 0.7, { shadow: false })
+    for (let j = 0; j < 3; j++) put(castle, box(1.9, 0.07, 0.07, M.iron), 0, 2.9 + j * 0.7, C + 0.7, { shadow: false })
+    for (let i = 0; i < 7; i++) put(castle, cone(0.06, 0.18, M.iron, 4), -0.84 + i * 0.28, 2.42, C + 0.7, { rx: Math.PI, shadow: false })
+    put(castle, box(2.1, 0.18, 4.6, M.wood), 0, 0.12, C + 3.4, { rx: 0.02 })
+    for (let i = 0; i < 8; i++) put(castle, box(2.12, 0.02, 0.06, M.woodDark), 0, 0.22, C + 1.4 + i * 0.55, { shadow: false })
+    for (const sx of [-1, 1]) {
+      rod(castle, new THREE.Vector3(sx * 0.95, 3.4, C + 1.2), new THREE.Vector3(sx * 0.95, 0.25, C + 5.6), 0.04, M.iron)
+      put(castle, box(0.8, 2.1, 0.04, M.bannerBlue), sx * 2.6, 4.2, C + 1.83, { shadow: false })
+      const bs = new THREE.Mesh(geo('bannerstar', () => new THREE.ShapeGeometry(starShape(0.22, 0.1))), M.gold)
+      put(castle, bs, sx * 2.6, 4.5, C + 1.86, { shadow: false })
+    }
+  }
+
+  // star tower (NE)
+  const starTower = tower(castle, C, -C, { r: 2.3, h: 15, roof: M.roofRose, roofH: 6, flag: null, windows: 7 })
+  {
+    put(starTower, cyl(3.15, 3.0, 0.32, M.stoneDark, 26), 0, 11, 0)
+    const rail = new THREE.Mesh(geo('rail', () => new THREE.TorusGeometry(3.05, 0.05, 6, 40)), M.woodDark)
+    put(starTower, rail, 0, 11.8, 0, { rx: Math.PI / 2, shadow: false })
+    for (let i = 0; i < 20; i++) {
+      const a = (i / 20) * TAU
+      put(starTower, cyl(0.04, 0.04, 0.65, M.woodDark, 5), Math.cos(a) * 3.05, 11.48, Math.sin(a) * 3.05, { shadow: false })
+    }
+    const vane = new THREE.Mesh(geo('vanestar', () => new THREE.ExtrudeGeometry(starShape(0.55, 0.24), { depth: 0.08, bevelEnabled: false })), M.gold)
+    put(starTower, cyl(0.04, 0.04, 1.3, M.iron, 6), 0, 21.9, 0)
+    put(starTower, vane, 0, 22.9, -0.04)
+    onFrame((t) => {
+      vane.rotation.y = Math.sin(t * 0.4) * 0.6
+    })
+  }
+
+  // keep
+  const keep = new THREE.Group()
+  keep.position.set(0, 0, -4.5)
+  castle.add(keep)
+  const KW = 8
+  const KD = 6
+  const KT = 0.4
+  {
+    put(keep, box(KW + 0.6, 0.5, KD + 0.6, M.stoneDark), 0, 0.25, 0)
+    put(keep, box(KW, 9, KT, M.stone), 0, 4.5, -KD / 2 + KT / 2)
+    put(keep, box(KT, 9, KD, M.stone), -KW / 2 + KT / 2, 4.5, 0)
+    put(keep, box(KT, 9, KD, M.stone), KW / 2 - KT / 2, 4.5, 0)
+    const floorMats = [M.floor, M.woodFloor, M.woodFloor]
+    for (let f = 0; f < 3; f++) put(keep, box(KW - 0.1, 0.26, KD - 0.1, floorMats[f]), 0, f * 3 + 0.37, 0)
+    put(keep, box(KW + 0.4, 0.35, KD + 0.4, M.stoneDark), 0, 9.1, 0)
+    put(keep, gableRoof(KD, KW, 3.4, M.roofBlue, 0.4), 0, 9.25, 0, { ry: Math.PI / 2 })
+    put(keep, box(0.7, 3.8, 0.7, M.stoneDark), -3.3, 11, 0.9)
+    put(keep, box(0.7, 3.4, 0.7, M.stoneDark), 2.6, 10.9, -1.2)
+    addSmoke(keep, -3.3, 13.1, 0.9, 1.1)
+
+    const front = new THREE.Group()
+    cutawayParts.push(front)
+    keep.add(front)
+    put(front, archWall(KW, 9, KT, 1.6, 2.6, M.stone), 0, 0.25, KD / 2 - KT / 2)
+    put(front, box(1.4, 2.0, 0.08, M.woodDark), 0, 1.25, KD / 2 - KT / 2 + 0.05, { shadow: false })
+    const fs = new THREE.Mesh(geo('frontstar', () => new THREE.ShapeGeometry(starShape(0.35, 0.15))), M.gold)
+    put(front, fs, 0, 3.4, KD / 2 + 0.02, { shadow: false })
+    for (const f of [1, 2]) {
+      for (const x of [-2.6, 0, 2.6]) addWindow(front, x, f * 3 + 1.9, KD / 2 - KT / 2, 0.6, 1.1, KT + 0.14)
+    }
+    for (const x of [-2.6, 2.6]) addWindow(front, x, 1.9, KD / 2 - KT / 2, 0.6, 1.1, KT + 0.14)
+    for (let f = 0; f < 3; f++) {
+      for (const z of [-1.4, 1.4]) {
+        addWindow(keep, -KW / 2 + KT / 2, f * 3 + 1.9, z, 0.55, 1.05, KT + 0.14, 'x')
+        if (!(f === 0 && z === 1.4)) addWindow(keep, KW / 2 - KT / 2, f * 3 + 1.9, z, 0.55, 1.05, KT + 0.14, 'x')
+      }
+      if (f !== 2) {
+        for (const x of f === 0 ? [-3.0, 3.0] : [-1.8, 1.8]) addWindow(keep, x, f * 3 + 2.0, -KD / 2 + KT / 2, 0.55, 1.05, KT + 0.14)
+      }
+    }
+    for (const [x, z] of [[-4.1, 3.1], [4.1, 3.1], [-4.1, -3.1], [4.1, -3.1]]) {
+      put(keep, cyl(0.62, 0.45, 2.6, M.stone, 14), x, 8.1, z)
+      put(keep, cone(0.8, 1.7, M.roofBlue, 14), x, 10.25, z)
+      put(keep, cone(0.45, 0.5, M.stoneDark, 14), x, 6.55, z, { rx: Math.PI })
+    }
+  }
+
+  // great hall
+  {
+    const hall = new THREE.Group()
+    hall.position.y = 0.5
+    keep.add(hall)
+    interiorGroups.push(hall)
+    put(hall, box(1.3, 0.03, 4.6, M.carpet), 0, 0.02, 0.4)
+    put(hall, box(1.3, 0.035, 0.12, M.gold), 0, 0.03, 2.65)
+    put(hall, box(3.2, 0.3, 1.25, M.stoneDark), 0, 0.15, -2.1)
+    put(hall, box(1.1, 0.5, 0.8, M.woodDark), 0, 0.55, -2.2)
+    put(hall, box(1.0, 0.12, 0.7, M.carpet), 0, 0.86, -2.15)
+    put(hall, box(1.1, 1.7, 0.2, M.woodDark), 0, 1.3, -2.55)
+    put(hall, box(0.8, 1.3, 0.05, M.carpet), 0, 1.35, -2.43)
+    for (const sx of [-1, 1]) {
+      put(hall, sph(0.1, M.gold, 10, 8), sx * 0.5, 2.25, -2.55)
+      put(hall, box(0.15, 0.5, 0.75, M.woodDark), sx * 0.55, 1.0, -2.2)
+    }
+    const king = person({ coat: '#b8616d', hair: '#e9e4da', pants: '#5d4a6e', sitting: true })
+    crown(king)
+    cape(king, '#5a70b0')
+    beard(king)
+    king.arms.forEach((a) => (a.rotation.x = -0.9))
+    king.g.position.set(0, 0.92 - 0.52 * king.s, -2.12)
+    hall.add(king.g)
+    onFrame((t) => {
+      king.head.rotation.y = Math.sin(t * 0.5) * 0.35
+    })
+
+    for (const sx of [-1, 1]) {
+      const tx = sx * 2.35
+      put(hall, box(1.1, 0.1, 3.6, M.wood), tx, 0.95, 0.4)
+      for (const [lx, lz] of [[-0.45, -1.6], [0.45, -1.6], [-0.45, 2.4], [0.45, 2.4]]) put(hall, box(0.1, 0.9, 0.1, M.woodDark), tx + lx, 0.45, lz)
+      put(hall, box(0.35, 0.08, 3.4, M.woodDark), tx - sx * 0.85, 0.5, 0.4)
+      put(hall, box(0.08, 0.46, 3.2, M.woodDark), tx - sx * 0.85, 0.25, 0.4)
+      for (let i = 0; i < 4; i++) {
+        const z = -1.0 + i * 0.95
+        put(hall, cyl(0.15, 0.15, 0.03, M.white, 12), tx + sx * 0.15, 1.02, z, { shadow: false })
+        put(hall, cyl(0.04, 0.03, 0.14, M.gold, 8), tx - sx * 0.25, 1.08, z + 0.25, { shadow: false })
+        put(hall, sph(0.07, mat(i % 2 ? '#d6655d' : '#c8955d'), 8, 6), tx + sx * 0.15, 1.08, z, { shadow: false })
+      }
+      for (const z of [-0.7, 1.4]) {
+        put(hall, cyl(0.04, 0.04, 0.22, M.white, 8), tx, 1.11, z, { shadow: false })
+        put(hall, sph(0.04, flameMat, 6, 6), tx, 1.26, z, { shadow: false })
+      }
+    }
+
+    put(hall, box(0.7, 2.3, 2.2, M.stoneDark), -3.45, 1.15, 0.2)
+    put(hall, box(0.12, 1.05, 1.25, M.dark), -3.08, 0.6, 0.2, { shadow: false })
+    put(hall, box(0.9, 0.16, 2.5, M.stoneWarm), -3.35, 1.3, 0.2)
+    const fireGroup = new THREE.Group()
+    fireGroup.position.set(-3.05, 0.15, 0.2)
+    hall.add(fireGroup)
+    const flames = []
+    for (let i = 0; i < 4; i++) {
+      const f = put(fireGroup, cone(0.13, 0.5, i % 2 ? fireMat : flameMat, 7), 0, 0.25, -0.3 + i * 0.2, { shadow: false })
+      flames.push(f)
+    }
+    addPointLight(hall, -2.6, 1.0, 0.2, '#ffad5e', 7, 9, true)
+    onFrame((t) => {
+      flames.forEach((f, i) => {
+        f.scale.y = 0.8 + Math.sin(t * 9 + i * 1.7) * 0.25 + Math.sin(t * 13 + i) * 0.1
+      })
+    })
+
+    for (const sx of [-1, 1]) {
+      put(hall, box(0.8, 1.8, 0.03, M.bannerBlue), sx * 1.8, 1.55, -2.58, { shadow: false })
+      const bs = new THREE.Mesh(geo('bannerstar', () => new THREE.ShapeGeometry(starShape(0.22, 0.1))), M.gold)
+      put(hall, bs, sx * 1.8, 1.8, -2.56, { shadow: false })
+      put(hall, cone(0.4, 0.3, M.bannerBlue, 3), sx * 1.8, 0.5, -2.58, { rx: Math.PI, ry: Math.PI / 6, s: [1, 1, 0.08], shadow: false })
+    }
+    put(hall, box(0.04, 1.4, 2.3, mat('#a77897')), 3.58, 1.6, -0.6, { shadow: false })
+    put(hall, box(0.05, 0.08, 2.5, M.gold), 3.57, 2.33, -0.6, { shadow: false })
+
+    const chand = new THREE.Group()
+    chand.position.set(0, 2.3, 0.3)
+    hall.add(chand)
+    put(chand, cyl(0.02, 0.02, 0.5, M.iron, 4), 0, 0.25, 0, { shadow: false })
+    put(chand, new THREE.Mesh(geo('chandring', () => new THREE.TorusGeometry(0.55, 0.04, 6, 24)), M.iron), 0, 0, 0, { rx: Math.PI / 2, shadow: false })
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * TAU
+      put(chand, cyl(0.03, 0.03, 0.14, M.white, 6), Math.cos(a) * 0.55, 0.08, Math.sin(a) * 0.55, { shadow: false })
+      put(chand, sph(0.035, flameMat, 6, 6), Math.cos(a) * 0.55, 0.19, Math.sin(a) * 0.55, { shadow: false })
+    }
+    addPointLight(hall, 0, 2.0, 0.3, '#ffd18c', 5, 8)
+    onFrame((t) => {
+      chand.rotation.z = Math.sin(t * 0.7) * 0.03
+    })
+
+    for (const sx of [-1, 1]) {
+      const k = person({ coat: '#c3cad7', pants: '#aab1bf', hair: '#c3cad7', shoes: '#8d93a0' })
+      helmet(k)
+      put(k.arms[sx < 0 ? 1 : 0], cyl(0.02, 0.02, 1.6, M.iron, 5), 0, -0.2, 0.08, { shadow: false })
+      k.g.position.set(sx * 3.15, 0, 2.45)
+      k.g.rotation.y = sx * -Math.PI / 2
+      hall.add(k.g)
+    }
+  }
+
+  // bedchamber
+  {
+    const room = new THREE.Group()
+    room.position.y = 3.5
+    keep.add(room)
+    interiorGroups.push(room)
+    put(room, cyl(1.35, 1.35, 0.02, mat('#dcaaa3'), 28), 0, 0.01, 0.4, { shadow: false })
+    put(room, cyl(1.0, 1.0, 0.025, mat('#f0d6a8'), 28), 0, 0.015, 0.4, { shadow: false })
+    const bx = -2.2
+    const bz = -1.4
+    put(room, box(1.9, 0.4, 2.3, M.wood), bx, 0.25, bz)
+    put(room, box(1.8, 0.2, 2.2, M.white), bx, 0.55, bz)
+    put(room, box(1.82, 0.12, 1.4, mat('#7f9ccb')), bx, 0.66, bz + 0.4)
+    for (const px of [-0.45, 0.45]) put(room, box(0.6, 0.14, 0.35, M.white), bx + px, 0.73, bz - 0.8)
+    for (const [px, pz] of [[-0.9, -1.1], [0.9, -1.1], [-0.9, 1.1], [0.9, 1.1]]) put(room, cyl(0.06, 0.06, 2.2, M.woodDark, 8), bx + px, 1.1, bz + pz)
+    put(room, box(1.95, 0.1, 2.35, mat('#d9918a')), bx, 2.2, bz)
+    put(room, box(0.04, 1.2, 2.3, mat('#efc2bd', { transparent: true, opacity: 0.8 })), bx - 0.95, 1.55, bz, { shadow: false })
+    put(room, box(1.0, 0.5, 0.5, M.woodDark), bx, 0.25, bz + 1.5)
+    put(room, box(1.02, 0.06, 0.52, M.gold), bx, 0.5, bz + 1.5, { shadow: false })
+    const cat = new THREE.Group()
+    put(cat, sph(0.16, mat('#e3a86b'), 10, 8), 0, 0, 0, { s: [1.3, 0.7, 1] })
+    put(cat, sph(0.1, mat('#e3a86b'), 10, 8), 0.18, 0.05, 0.05)
+    for (const sz of [-1, 1]) put(cat, cone(0.035, 0.08, mat('#e3a86b'), 4), 0.2, 0.15, 0.05 + sz * 0.05)
+    put(cat, new THREE.Mesh(geo('cattail', () => new THREE.TorusGeometry(0.17, 0.03, 6, 12, Math.PI)), mat('#e3a86b')), -0.05, -0.02, 0, { rx: Math.PI / 2 })
+    cat.position.set(bx + 0.3, 0.8, bz + 0.55)
+    room.add(cat)
+    onFrame((t) => {
+      cat.scale.y = 1 + Math.sin(t * 2) * 0.04
+    })
+
+    put(room, box(1.3, 2.3, 0.6, M.wood), 2.6, 1.15, -2.3)
+    put(room, box(0.02, 2.0, 0.02, M.woodDark), 2.6, 1.15, -1.99, { shadow: false })
+    for (const sx of [-1, 1]) put(room, sph(0.04, M.gold, 6, 6), 2.6 + sx * 0.1, 1.2, -1.98, { shadow: false })
+    put(room, box(1.3, 0.08, 0.7, M.wood), 2.9, 0.8, 1.2)
+    for (const [lx, lz] of [[-0.55, -0.28], [0.55, -0.28], [-0.55, 0.28], [0.55, 0.28]]) put(room, box(0.07, 0.8, 0.07, M.woodDark), 2.9 + lx, 0.4, 1.2 + lz)
+    put(room, box(0.4, 0.04, 0.3, M.white), 2.8, 0.86, 1.2, { ry: 0.3, shadow: false })
+    put(room, box(0.18, 0.06, 0.26, mat('#5470ab')), 3.2, 0.87, 1.0, { shadow: false })
+    put(room, cyl(0.035, 0.035, 0.18, M.white, 6), 3.3, 0.93, 1.4, { shadow: false })
+    put(room, sph(0.035, flameMat, 6, 6), 3.3, 1.06, 1.4, { shadow: false })
+    put(room, box(0.5, 0.06, 0.5, M.wood), 2.0, 0.48, 1.2)
+    put(room, box(0.06, 0.6, 0.5, M.wood), 1.77, 0.8, 1.2)
+    addPointLight(room, 2.8, 1.5, 1.0, '#ffcf8a', 4, 7, true)
+
+    const princess = person({ coat: '#eaa7b4', hair: '#d9a65a', dress: true })
+    crown(princess, true)
+    put(princess.head, box(0.3, 0.42, 0.06, mat('#d9a65a')), 0, -0.15, -0.14)
+    princess.arms.forEach((a, i) => {
+      a.rotation.x = -1.0
+      a.rotation.z = (i ? 1 : -1) * -0.25
+    })
+    put(princess.inner, box(0.24, 0.03, 0.17, mat('#7f9ccb')), 0, 0.84, 0.36, { rx: -0.5, shadow: false })
+    princess.g.position.set(-0.7, 0, 0.6)
+    princess.g.rotation.y = 0.6
+    room.add(princess.g)
+    onFrame((t) => {
+      princess.head.rotation.x = 0.25 + Math.sin(t * 0.8) * 0.05
+    })
+  }
+
+  // library
+  {
+    const lib = new THREE.Group()
+    lib.position.y = 6.5
+    keep.add(lib)
+    interiorGroups.push(lib)
+    const bookColors = ['#c96d76', '#5470ab', '#86b874', '#eac35e', '#a77897', '#f1e6d2', '#7f9ccb', '#d9918a'].map((c) => new THREE.Color(c))
+    for (const sx of [-2.5, 0, 2.5]) {
+      put(lib, box(2.2, 2.4, 0.5, M.woodDark), sx, 1.2, -2.5)
+      for (let s = 0; s < 4; s++) {
+        put(lib, box(2.1, 0.05, 0.46, M.wood), sx, 0.25 + s * 0.58, -2.45, { shadow: false })
+        let x = sx - 0.98
+        while (x < sx + 0.95) {
+          const w = R(0.08, 0.14)
+          const h = R(0.3, 0.46)
+          addInstance('book', CASTLE.x + x + w / 2, PLATEAU + 6.5 + 0.28 + s * 0.58 + h / 2, CASTLE.z - 4.5 - 2.35, w, h, 0.32, 0, bookColors[Math.floor(rand() * bookColors.length)], 0, rand() < 0.1 ? 0.2 : 0)
+          x += w + 0.01
+        }
+      }
+    }
+    put(lib, cyl(0.06, 0.2, 0.9, M.woodDark, 10), -2.5, 0.45, 1.3)
+    const globe = put(lib, sph(0.38, mat('#86aed3'), 20, 14), -2.5, 1.25, 1.3)
+    put(globe, sph(0.2, M.leaf, 10, 8), 0.2, 0.12, 0.18, { s: [1, 0.6, 0.6] })
+    put(lib, new THREE.Mesh(geo('meridian', () => new THREE.TorusGeometry(0.44, 0.02, 6, 30)), M.gold), -2.5, 1.25, 1.3, { ry: 0.3 })
+    onFrame((t) => {
+      globe.rotation.y = t * 0.3
+    })
+
+    put(lib, cyl(0.9, 0.9, 0.08, M.wood, 24), 0.5, 0.8, 0.5)
+    put(lib, cyl(0.12, 0.25, 0.8, M.woodDark, 10), 0.5, 0.4, 0.5)
+    put(lib, box(0.8, 0.01, 0.55, mat('#f2e2bf')), 0.4, 0.85, 0.45, { ry: 0.2, shadow: false })
+    put(lib, cyl(0.035, 0.035, 0.18, M.white, 6), 0.95, 0.93, 0.2, { shadow: false })
+    put(lib, sph(0.035, flameMat, 6, 6), 0.95, 1.06, 0.2, { shadow: false })
+    put(lib, box(0.3, 0.05, 0.22, mat('#c96d76')), 0.15, 0.86, 0.85, { ry: -0.4, shadow: false })
+    const scribe = person({ coat: '#8b6f57', hair: '#b9b2a8', pants: '#6b5544', sitting: true })
+    beard(scribe, '#d8d2c8')
+    scribe.arms.forEach((a) => (a.rotation.x = -1.1))
+    put(lib, box(0.5, 0.06, 0.5, M.wood), 0.5, 0.5, 1.55)
+    scribe.g.position.set(0.5, 0.53 - 0.52 * scribe.s, 1.55)
+    scribe.g.rotation.y = Math.PI
+    lib.add(scribe.g)
+    const quill = put(scribe.arms[1], cyl(0.008, 0.008, 0.25, M.white, 4), 0, -0.5, 0.05, { rx: 0.6, shadow: false })
+    onFrame((t) => {
+      scribe.arms[1].rotation.x = -1.1 + Math.sin(t * 6) * 0.05
+      quill.rotation.z = Math.sin(t * 8) * 0.2
+    })
+    const tripod = new THREE.Group()
+    tripod.position.set(2.7, 0, 1.4)
+    lib.add(tripod)
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * TAU
+      rod(tripod, new THREE.Vector3(0, 1.1, 0), new THREE.Vector3(Math.cos(a) * 0.35, 0, Math.sin(a) * 0.35), 0.025, M.woodDark)
+    }
+    put(tripod, cyl(0.07, 0.1, 1.1, M.gold, 12), 0.25, 1.3, -0.1, { rz: -1.0, rx: 0.2 })
+    addPointLight(lib, 0.6, 1.8, 0.3, '#ffd59a', 4, 7)
+  }
+
+  // stair tower
+  const stair = new THREE.Group()
+  stair.position.set(4.9, 0, -6)
+  castle.add(stair)
+  {
+    const r = 1.4
+    const h = 11
+    const back = new THREE.Mesh(geo('stairback', () => new THREE.CylinderGeometry(r, r, h, 22, 1, true, Math.PI / 2, Math.PI)), M.stoneDouble)
+    put(stair, back, 0, h / 2, 0)
+    const frontHalf = new THREE.Mesh(geo('stairfront', () => new THREE.CylinderGeometry(r, r, h, 22, 1, true, -Math.PI / 2, Math.PI)), M.stoneDouble)
+    const sf = new THREE.Group()
+    stair.add(sf)
+    cutawayParts.push(sf)
+    put(sf, frontHalf, 0, h / 2, 0)
+    for (let i = 0; i < 3; i++) put(sf, box(0.22, 0.55, 0.2, windowMat), 0, 2.5 + i * 3, r, { shadow: false })
+    put(stair, cyl(1.62, 1.4, 0.45, M.stoneDark, 22), 0, h + 0.1, 0)
+    put(stair, cone(1.75, 3, M.roofBlue, 22), 0, h + 1.8, 0)
+    addFlag(stair, 0, h + 3.2, 0, M.bannerBlue, 0.9, 0.5, 1.1)
+    put(stair, cyl(0.14, 0.14, 9.6, M.stoneDark, 10), 0, 4.8, 0)
+    const steps = 38
+    for (let i = 0; i < steps; i++) {
+      const pivot = new THREE.Group()
+      pivot.position.y = 0.3 + i * 0.24
+      pivot.rotation.y = i * 0.42
+      stair.add(pivot)
+      put(pivot, box(1.15, 0.12, 0.42, M.stoneWarm), 0.68, 0, 0, { shadow: false })
+    }
+    const page = person({ coat: '#de9662', hair: '#a8703f', pants: '#7d6450', s: 0.8 })
+    flatCap(page, '#5470ab')
+    put(page.arms[0], cyl(0.025, 0.025, 0.22, M.white, 6), 0, -0.48, 0.08, { rx: 1.4, shadow: false })
+    stair.add(page.g)
+    onFrame((t) => {
+      const k = (t * 0.06) % 1
+      const i = k * (steps - 2)
+      const a = i * 0.42
+      page.g.position.set(Math.cos(a) * 0.8, 0.36 + i * 0.24, -Math.sin(a) * 0.8)
+      page.g.rotation.y = a + Math.PI
+      page.legs[0].rotation.x = Math.sin(t * 8) * 0.5
+      page.legs[1].rotation.x = -Math.sin(t * 8) * 0.5
+    })
+  }
+
+  // chapel
+  {
+    const ch = new THREE.Group()
+    ch.position.set(-6.2, 0, -6.5)
+    castle.add(ch)
+    put(ch, box(3, 3.6, 5, M.stone), 0, 1.8, 0)
+    put(ch, box(3.3, 0.4, 5.3, M.stoneDark), 0, 0.2, 0)
+    put(ch, gableRoof(3, 5, 2.3, M.roofBlue, 0.3), 0, 3.6, 0)
+    put(ch, cyl(0.6, 0.6, 0.12, mat('#e9b7cf', { emissive: '#c77fb1', emissiveIntensity: 0.4 }), 20), 0, 4.3, 2.55, { rx: Math.PI / 2, shadow: false })
+    for (let i = 0; i < 4; i++) put(ch, box(1.2, 0.05, 0.05, M.stoneDark), 0, 4.3, 2.63, { rz: (i * Math.PI) / 4, shadow: false })
+    put(ch, archWall(1.2, 2.2, 0.15, 0.9, 1.8, M.stoneDark), 0, 0, 2.55)
+    put(ch, box(0.85, 1.4, 0.05, M.woodDark), 0, 0.7, 2.5, { shadow: false })
+    for (const z of [-1.4, 0, 1.4]) {
+      for (const sx of [-1, 1]) put(ch, box(0.12, 1.3, 0.35, mat('#b7c6ee', { emissive: '#8fa3e0', emissiveIntensity: 0.25 })), sx * 1.5, 2.1, z, { shadow: false })
+    }
+    put(ch, box(1.3, 6.2, 1.3, M.stone), 0, 3.1, -2.6)
+    put(ch, box(1.4, 0.2, 1.4, M.stoneDark), 0, 6.2, -2.6)
+    put(ch, cone(1.1, 1.8, M.roofRose, 4), 0, 7.2, -2.6, { ry: Math.PI / 4 })
+    put(ch, box(0.7, 0.9, 1.35, M.dark), 0, 5.4, -2.6, { shadow: false })
+    const bell = put(ch, cone(0.3, 0.45, M.gold, 12), 0, 5.35, -2.6, { shadow: false })
+    onFrame((t) => {
+      bell.rotation.x = Math.sin(t * 1.4) * 0.25
+    })
+    put(ch, box(0.08, 0.6, 0.08, M.gold), 0, 6.2, 2.55)
+    put(ch, box(0.36, 0.08, 0.08, M.gold), 0, 6.3, 2.55)
+    addFlag(ch, 0, 8.1, -2.6, M.bannerBlue, 0.6, 0.35, 0.6)
+  }
+
+  // kitchen
+  {
+    const k = new THREE.Group()
+    k.position.set(-6.2, 0, 0.8)
+    castle.add(k)
+    put(k, box(3, 2.5, 3, M.plaster), 0, 1.25, 0)
+    for (const [x, z] of [[-1.5, -1.5], [1.5, -1.5], [-1.5, 1.5], [1.5, 1.5]]) put(k, box(0.16, 2.55, 0.16, M.woodDark), x, 1.27, z)
+    put(k, box(3.05, 0.14, 0.12, M.woodDark), 0, 1.3, 1.52)
+    put(k, gableRoof(3, 3, 1.8, M.roofRose, 0.3), 0, 2.5, 0)
+    put(k, box(0.6, 2.4, 0.6, M.stoneDark), -0.9, 3.2, -0.8)
+    addSmoke(k, -0.9, 4.5, -0.8, 1)
+    put(k, box(0.8, 1.5, 0.06, M.woodDark), 0.4, 0.75, 1.53, { shadow: false })
+    addWindow(k, 1.53, 1.5, 0.5, 0.5, 0.55, 0.1, 'x')
+    addWindow(k, -0.6, 1.6, 1.53, 0.5, 0.55, 0.1)
+    for (let i = 0; i < 3; i++) put(k, cyl(0.28, 0.25, 0.65, M.wood, 12), 1.9 + (i % 2) * 0.35, 0.33, -1.0 + i * 0.6)
+    for (let i = 0; i < 6; i++) put(k, cyl(0.08, 0.08, 0.9, mat('#b88a5e'), 6), -1.85, 0.12 + (i % 3) * 0.16, -1.0 + Math.floor(i / 3) * 0.17 + (i % 3) * 0.05, { rx: Math.PI / 2 })
+
+    const pot = new THREE.Group()
+    pot.position.set(2.3, 0, 1.2)
+    k.add(pot)
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * TAU
+      rod(pot, new THREE.Vector3(0, 1.3, 0), new THREE.Vector3(Math.cos(a) * 0.55, 0, Math.sin(a) * 0.55), 0.03, M.woodDark)
+    }
+    const caul = new THREE.Mesh(geo('cauldron', () => new THREE.SphereGeometry(0.35, 14, 10, 0, TAU, Math.PI / 2, Math.PI / 2)), mat('#4a4552', { side: THREE.DoubleSide }))
+    put(pot, caul, 0, 0.75, 0)
+    put(pot, cyl(0.33, 0.33, 0.02, mat('#d9b071'), 14), 0, 0.72, 0, { shadow: false })
+    const potFire = put(pot, cone(0.2, 0.35, fireMat, 7), 0, 0.2, 0, { shadow: false })
+    addPointLight(pot, 0, 0.5, 0, '#ffb066', 3, 5, true)
+    addSmoke(pot, 0, 0.9, 0, 0.5)
+    const cook = person({ coat: '#f5efe5', hair: '#6d4b35', pants: '#7d6a5a' })
+    put(cook.head, cyl(0.14, 0.12, 0.22, M.white, 12), 0, 0.22, 0)
+    put(cook.head, sph(0.17, M.white, 12, 8), 0, 0.36, 0, { s: [1, 0.6, 1] })
+    apron(cook, '#e7dcc8')
+    put(cook.arms[1], cyl(0.015, 0.015, 0.7, M.woodDark, 4), 0, -0.6, 0.1, { rx: 0.3, shadow: false })
+    cook.g.position.set(2.3, 0, 2.1)
+    cook.g.rotation.y = Math.PI
+    k.add(cook.g)
+    onFrame((t) => {
+      cook.arms[1].rotation.x = -0.7 + Math.sin(t * 2.5) * 0.25
+      cook.arms[1].rotation.z = Math.cos(t * 2.5) * 0.25
+      potFire.scale.y = 0.8 + Math.sin(t * 11) * 0.25
+    })
+  }
+
+  // smithy
+  {
+    const s = new THREE.Group()
+    s.position.set(5.8, 0, 2.8)
+    castle.add(s)
+    for (const [x, z] of [[-1.5, -1.1], [1.5, -1.1], [-1.5, 1.1], [1.5, 1.1]]) put(s, box(0.16, 2.6, 0.16, M.woodDark), x, 1.3, z)
+    put(s, box(3.5, 0.15, 2.8, M.thatch), 0, 2.6, 0, { rx: 0.18 })
+    put(s, box(1.1, 0.9, 1.0, M.stoneDark), 0.9, 0.45, -0.7)
+    put(s, box(0.8, 0.06, 0.7, mat('#ff9b4a', { emissive: '#ff7a2a', emissiveIntensity: 1 })), 0.9, 0.92, -0.7, { shadow: false })
+    put(s, box(0.5, 1.4, 0.5, M.stoneDark), 1.2, 1.6, -0.9)
+    addSmoke(s, 1.2, 2.8, -0.9, 0.6)
+    addPointLight(s, 0.9, 1.3, -0.5, '#ff9a4a', 4, 6, true)
+    put(s, box(0.35, 0.5, 0.3, M.woodDark), -0.4, 0.25, 0)
+    put(s, box(0.6, 0.2, 0.25, M.iron), -0.4, 0.6, 0)
+    put(s, cone(0.1, 0.25, M.iron, 4), -0.8, 0.62, 0, { rz: Math.PI / 2 })
+    put(s, cyl(0.3, 0.28, 0.55, M.wood, 12), -1.1, 0.28, 0.8)
+    for (let i = 0; i < 3; i++) put(s, cyl(0.025, 0.025, 1.3, M.metal, 5), -1.35, 0.8, -0.6 + i * 0.25, { rz: 0.15 })
+    const smith = person({ coat: '#857164', hair: '#3f3236', pants: '#5d4b3e' })
+    apron(smith, '#6d4c36')
+    beard(smith, '#3f3236')
+    const hammer = new THREE.Group()
+    hammer.position.set(0, -0.44, 0)
+    smith.arms[0].add(hammer)
+    put(hammer, cyl(0.02, 0.02, 0.35, M.woodDark, 5), 0, 0, 0.12, { rx: Math.PI / 2, shadow: false })
+    put(hammer, box(0.09, 0.09, 0.16, M.iron), 0, 0, 0.3, { rx: Math.PI / 2, shadow: false })
+    smith.g.position.set(-0.4, 0, 0.75)
+    smith.g.rotation.y = Math.PI
+    s.add(smith.g)
+    onFrame((t) => {
+      const k = Math.abs(Math.sin(t * 3))
+      smith.arms[0].rotation.x = -0.4 - k * 1.6
+    })
+  }
+
+  // stable
+  {
+    const st = new THREE.Group()
+    st.position.set(6.3, 0, -1.2)
+    castle.add(st)
+    put(st, box(0.2, 2.2, 2.6, M.wood), 1.25, 1.1, 0)
+    put(st, box(2.6, 2.2, 0.2, M.wood), 0, 1.1, -1.3)
+    put(st, box(2.6, 1.0, 0.2, M.wood), 0, 0.5, 1.3)
+    put(st, box(2.9, 0.14, 3.0, M.thatch), 0, 2.3, 0, { rz: 0.2 })
+    put(st, cone(0.6, 0.7, M.thatch, 10), 0.6, 0.35, -0.7)
+    put(st, box(1.0, 0.3, 0.35, M.woodDark), -0.9, 0.5, -0.95)
+    const horse = new THREE.Group()
+    horse.position.set(0.1, 0, 0.2)
+    horse.rotation.y = -Math.PI / 2
+    st.add(horse)
+    const brown = mat('#a3734f')
+    const capsule = new THREE.Mesh(geo('horsebody', () => new THREE.CapsuleGeometry(0.32, 0.85, 6, 12)), brown)
+    put(horse, capsule, 0, 1.0, 0, { rx: Math.PI / 2 })
+    put(horse, cyl(0.15, 0.2, 0.7, brown, 10), 0, 1.4, 0.55, { rx: 0.6 })
+    const hHead = new THREE.Group()
+    hHead.position.set(0, 1.75, 0.8)
+    horse.add(hHead)
+    put(hHead, box(0.24, 0.26, 0.55, brown), 0, 0, 0.12, { rx: 0.4 })
+    put(hHead, box(0.06, 0.4, 0.5, mat('#5b3f2e')), 0, 0.12, -0.2, { rx: 0.6 })
+    for (const sx of [-1, 1]) put(hHead, cone(0.04, 0.14, brown, 4), sx * 0.08, 0.2, -0.05)
+    for (const [lx, lz] of [[-0.17, 0.4], [0.17, 0.4], [-0.17, -0.4], [0.17, -0.4]]) put(horse, cyl(0.06, 0.05, 0.75, brown, 6), lx, 0.37, lz)
+    put(horse, cone(0.09, 0.6, mat('#5b3f2e'), 6), 0, 0.85, -0.75, { rx: -2.6 })
+    onFrame((t) => {
+      hHead.rotation.x = Math.sin(t * 0.9) * 0.15
+    })
+  }
+
+  // courtyard props
+  {
+    const w = new THREE.Group()
+    w.position.set(-1.8, 0, 2.4)
+    castle.add(w)
+    put(w, cyl(0.62, 0.66, 0.8, M.stoneDark, 16), 0, 0.4, 0)
+    put(w, cyl(0.48, 0.48, 0.02, mat('#6fa8c4'), 16), 0, 0.72, 0, { shadow: false })
+    for (const sx of [-1, 1]) put(w, box(0.1, 1.6, 0.1, M.woodDark), sx * 0.55, 1.3, 0)
+    put(w, gableRoof(1.3, 1.0, 0.5, M.roofRose, 0.1), 0, 2.1, 0, { ry: Math.PI / 2 })
+    put(w, cyl(0.03, 0.03, 1.2, M.woodDark, 5), 0, 1.75, 0, { rz: Math.PI / 2 })
+    put(w, cyl(0.12, 0.1, 0.18, M.wood, 8), 0, 1.2, 0)
+
+    const tree = new THREE.Group()
+    tree.position.set(-3.6, 0, 5.2)
+    castle.add(tree)
+    put(tree, cyl(0.12, 0.18, 1.6, M.trunk, 8), 0, 0.8, 0)
+    for (let i = 0; i < 5; i++) put(tree, new THREE.Mesh(geo('ico1', () => new THREE.IcosahedronGeometry(1, 1)), mat('#f2bfc8')), R(-0.5, 0.5), 1.9 + R(0, 0.6), R(-0.5, 0.5), { s: R(0.5, 0.75) })
+
+    const cart = new THREE.Group()
+    cart.position.set(3.0, 0, 6.2)
+    cart.rotation.y = 0.4
+    castle.add(cart)
+    put(cart, box(1.3, 0.3, 0.9, M.wood), 0, 0.6, 0)
+    for (const sz of [-1, 1]) put(cart, new THREE.Mesh(geo('wheel', () => new THREE.TorusGeometry(0.3, 0.05, 6, 16)), M.woodDark), 0, 0.32, sz * 0.48)
+    put(cart, box(0.06, 0.06, 1.2, M.woodDark), 0.9, 0.5, 0, { rz: 0.3 })
+    for (let i = 0; i < 6; i++) put(cart, sph(0.12, mat(i % 2 ? '#d6655d' : '#eac35e'), 8, 6), R(-0.45, 0.45), 0.85, R(-0.3, 0.3))
+
+    const chickens = []
+    for (let i = 0; i < 3; i++) {
+      const c = chicken()
+      c.g.position.set(0.8 + i * 0.6, 0, 2.6 + (i % 2) * 0.5)
+      c.g.rotation.y = rand() * TAU
+      castle.add(c.g)
+      chickens.push({ c, ph: rand() * 6 })
+    }
+    onFrame((t) => {
+      for (const { c, ph } of chickens) {
+        c.body.rotation.x = Math.max(0, Math.sin(t * 3 + ph)) * 0.7
+        c.g.rotation.y += 0.002 * Math.sin(t * 0.3 + ph)
+      }
+    })
+  }
+
+  // star tower astronomer
+  {
+    const a = -Math.PI / 4
+    const astro = person({ coat: '#41507f', dress: true, hair: '#e9e4da' })
+    pointyHat(astro, '#41507f')
+    beard(astro, '#f3efe7', true)
+    astro.arms.forEach((arm) => (arm.rotation.x = -1.3))
+    astro.g.position.set(Math.cos(a) * 2.55, 11.16, Math.sin(a) * 2.55)
+    astro.g.rotation.y = Math.PI / 2 - a
+    starTower.add(astro.g)
+    const scope = new THREE.Group()
+    scope.position.set(Math.cos(a) * 2.75, 12.25, Math.sin(a) * 2.75)
+    scope.rotation.y = Math.PI / 2 - a
+    starTower.add(scope)
+    put(scope, cyl(0.06, 0.09, 0.9, M.gold, 12), 0.15, 0.1, 0.3, { rx: 1.0 })
+    onFrame((t) => {
+      scope.rotation.x = Math.sin(t * 0.3) * 0.15
+      astro.head.rotation.x = -0.25 + Math.sin(t * 0.3) * 0.1
+    })
+  }
+
+  // patrol knights
+  {
+    const makeKnight = () => {
+      const k = person({ coat: '#c3cad7', pants: '#aab1bf', hair: '#c3cad7', shoes: '#8d93a0' })
+      helmet(k)
+      put(k.inner, box(0.31, 0.42, 0.03, mat('#5470ab')), 0, 0.76, 0.165)
+      put(k.arms[0], cyl(0.22, 0.22, 0.04, mat('#5470ab'), 14), -0.06, -0.25, 0.05, { rz: Math.PI / 2 })
+      put(k.arms[1], cyl(0.02, 0.02, 2.0, M.woodDark, 5), 0, -0.3, 0.06, { shadow: false })
+      put(k.arms[1], cone(0.05, 0.18, M.metal, 5), 0, 0.75, 0.06)
+      return k
+    }
+    const patrols = [
+      { from: [-5.8, -C + 0.15], to: [5.8, -C + 0.15], speed: 0.55, ph: 0 },
+      { from: [C - 0.15, -5.5], to: [C - 0.15, 6], speed: 0.5, ph: 2 },
+    ]
+    for (const p of patrols) {
+      const k = makeKnight()
+      k.arms[1].rotation.x = -0.15
+      castle.add(k.g)
+      const L = Math.hypot(p.to[0] - p.from[0], p.to[1] - p.from[1])
+      onFrame((t) => {
+        const raw = ((t * p.speed) / L + p.ph) % 2
+        const u = raw < 1 ? raw : 2 - raw
+        const x = lerp(p.from[0], p.to[0], u)
+        const z = lerp(p.from[1], p.to[1], u)
+        k.g.position.set(x, 4.5, z)
+        const dx = (p.to[0] - p.from[0]) * (raw < 1 ? 1 : -1)
+        const dz = (p.to[1] - p.from[1]) * (raw < 1 ? 1 : -1)
+        k.g.rotation.y = Math.atan2(dx, dz)
+        const sw = Math.sin(t * 7) * 0.45
+        k.legs[0].rotation.x = sw
+        k.legs[1].rotation.x = -sw
+        k.arms[0].rotation.x = -sw * 0.5
+      })
+    }
+    for (const sx of [-1, 1]) {
+      const g = makeKnight()
+      g.g.position.set(sx * 1.9, 0, C + 6.2)
+      g.g.rotation.y = sx * 0.25
+      castle.add(g.g)
+    }
+  }
+
+  // ---------- village / farmland ----------
+  const groundY = (x, z) => terrainH(x, z)
+  function cottage(x, z, ry, roofMat, smoke) {
+    const g = new THREE.Group()
+    const corners = [[-1.4, -1.2], [1.4, -1.2], [-1.4, 1.2], [1.4, 1.2]].map(([dx, dz]) => {
+      const c = Math.cos(ry)
+      const s = Math.sin(ry)
+      return groundY(x + dx * c + dz * s, z - dx * s + dz * c)
+    })
+    const y = Math.min(...corners)
+    g.position.set(x, y, z)
+    g.rotation.y = ry
+    scene.add(g)
+    put(g, box(3.0, 1.2, 2.6, M.stoneDark), 0, -0.3, 0)
+    put(g, box(2.6, 1.9, 2.2, M.plaster), 0, 1.25, 0)
+    for (const [px, pz] of [[-1.3, -1.1], [1.3, -1.1], [-1.3, 1.1], [1.3, 1.1]]) put(g, box(0.14, 1.95, 0.14, M.woodDark), px, 1.25, pz)
+    put(g, box(2.65, 0.12, 0.1, M.woodDark), 0, 1.35, 1.12)
+    put(g, box(0.1, 1.8, 0.1, M.woodDark), -0.65, 1.25, 1.12, { rz: 0.5 })
+    put(g, gableRoof(2.2, 2.6, 1.6, roofMat, 0.35), 0, 2.2, 0, { ry: Math.PI / 2 })
+    put(g, box(0.6, 1.1, 0.06, M.woodDark), 0.5, 0.85, 1.12, { shadow: false })
+    addWindow(g, -0.55, 1.45, 1.12, 0.45, 0.45, 0.1)
+    addWindow(g, 1.32, 1.45, 0, 0.45, 0.45, 0.1, 'x')
+    if (smoke) {
+      put(g, box(0.4, 1.4, 0.4, M.stoneDark), -0.8, 3.1, -0.5)
+      addSmoke(g, -0.8, 3.9, -0.5, 0.7)
+    }
+    for (let i = 0; i < 6; i++) addInstance('flower', x + R(-1.6, 1.6), y + 0.15, z + R(1.3, 1.9), 1, 1, 1, 0, new THREE.Color(['#f2a7b5', '#fbf3c0', '#c7a6e0'][i % 3]))
+    return g
+  }
+  cottage(13.5, 7.5, -0.3, M.thatch, true)
+  cottage(17.5, 7.6, 0.15, M.roofRose, false)
+  cottage(11.4, 18.8, 0.6, M.roofRose, true)
+  cottage(14.8, 22.0, 0.2, M.thatch, false)
+  cottage(21.6, 20.0, -0.5, M.roofBlue, true)
+
+  {
+    const wx = 23.8
+    const wz = 10.5
+    const wy = groundY(wx, wz) - 0.3
+    const mill = new THREE.Group()
+    mill.position.set(wx, wy, wz)
+    mill.rotation.y = -Math.PI / 2 - 0.4
+    scene.add(mill)
+    put(mill, cyl(1.05, 1.5, 5.4, M.plaster, 16), 0, 2.7, 0)
+    for (let i = 0; i < 4; i++) put(mill, cyl(1.5 - i * 0.12, 1.5 - i * 0.12, 0.08, M.woodDark, 16), 0, 0.8 + i * 1.3, 0, { shadow: false })
+    put(mill, cone(1.4, 1.8, M.roofRose, 16), 0, 6.3, 0)
+    put(mill, box(0.7, 1.2, 0.06, M.woodDark), 0, 0.6, 1.47, { shadow: false })
+    addWindow(mill, 0, 3.4, 1.15, 0.4, 0.5, 0.15)
+    const hub = new THREE.Group()
+    hub.position.set(0, 4.8, 1.35)
+    mill.add(hub)
+    put(hub, cyl(0.18, 0.18, 0.5, M.woodDark, 10), 0, 0, 0, { rx: Math.PI / 2 })
+    for (let i = 0; i < 4; i++) {
+      const arm = new THREE.Group()
+      arm.rotation.z = (i * Math.PI) / 2
+      hub.add(arm)
+      put(arm, box(0.12, 3.6, 0.08, M.woodDark), 0, 1.8, 0.2)
+      put(arm, box(0.75, 2.8, 0.03, M.white), 0.42, 2.1, 0.22)
+      for (let j = 0; j < 4; j++) put(arm, box(0.8, 0.04, 0.05, M.woodDark), 0.42, 0.9 + j * 0.8, 0.24, { shadow: false })
+    }
+    onFrame((t, dt) => {
+      hub.rotation.z -= dt * 0.6
+    })
+  }
+
+  {
+    const stalk = new THREE.Color('#e9c46b')
+    const stalk2 = new THREE.Color('#f2d685')
+    const c = Math.cos(FIELD.rot)
+    const s = Math.sin(FIELD.rot)
+    for (let iv = 0; iv < 11; iv++) {
+      const v = -FIELD.hv + 0.25 + (iv / 10) * (FIELD.hv * 2 - 0.5)
+      for (let iu = 0; iu < 26; iu++) {
+        const u = -FIELD.hu + 0.2 + (iu / 25) * (FIELD.hu * 2 - 0.4) + R(-0.08, 0.08)
+        const x = FIELD.x + u * c - v * s
+        const z = FIELD.z + u * s + v * c
+        if (Math.hypot(u - 0.8, v) < 0.7) continue
+        const h = R(0.6, 0.85)
+        addInstance('wheat', x, groundY(x, z) + h / 2, z, 1, h, 1, rand() * 3, rand() < 0.5 ? stalk : stalk2, R(-0.1, 0.1), R(-0.1, 0.1))
+      }
+    }
+    const sx = FIELD.x + 0.8 * c
+    const sz = FIELD.z + 0.8 * s
+    const sy = groundY(sx, sz)
+    const crow = new THREE.Group()
+    crow.position.set(sx, sy, sz)
+    scene.add(crow)
+    put(crow, cyl(0.05, 0.05, 2.0, M.woodDark, 5), 0, 1.0, 0)
+    put(crow, cyl(0.04, 0.04, 1.4, M.woodDark, 5), 0, 1.5, 0, { rz: Math.PI / 2 })
+    put(crow, box(0.5, 0.6, 0.3, mat('#a77897')), 0, 1.35, 0)
+    put(crow, sph(0.2, mat('#e9cf98'), 10, 8), 0, 1.9, 0)
+    put(crow, cyl(0.38, 0.38, 0.03, mat('#e8c877'), 14), 0, 2.03, 0)
+    put(crow, cone(0.18, 0.25, mat('#e8c877'), 10), 0, 2.15, 0)
+
+    const farmer = person({ coat: '#9eb06f', hair: '#7a5232', pants: '#7d6a5a' })
+    strawHat(farmer)
+    const fork = new THREE.Group()
+    fork.position.y = -0.44
+    farmer.arms[1].add(fork)
+    put(fork, cyl(0.02, 0.02, 1.5, M.woodDark, 5), 0, 0.2, 0.08, { shadow: false })
+    const fx = FIELD.x - 1.5 * c + 1.6 * s
+    const fz = FIELD.z - 1.5 * s - 1.6 * c
+    farmer.g.position.set(fx, groundY(fx, fz), fz)
+    farmer.g.rotation.y = 0.8
+    scene.add(farmer.g)
+    onFrame((t) => {
+      farmer.arms[1].rotation.x = -0.6 + Math.sin(t * 1.8) * 0.5
+      farmer.inner.rotation.x = 0.12 + Math.sin(t * 1.8) * 0.08
+    })
+    for (const [hx, hz] of [[21.8, 16.4], [23, 17.4], [20.6, 17.6]]) {
+      put(scene, cyl(0.7, 0.9, 0.9, M.thatch, 12), hx, groundY(hx, hz) + 0.45, hz)
+      put(scene, cone(0.72, 0.6, M.thatch, 12), hx, groundY(hx, hz) + 1.2, hz)
+    }
+    for (let i = 0; i <= 8; i++) {
+      const u = -FIELD.hu + (i / 8) * FIELD.hu * 2
+      const v = FIELD.hv + 0.45
+      const x = FIELD.x + u * c - v * s
+      const z = FIELD.z + u * s + v * c
+      put(scene, box(0.1, 0.7, 0.1, M.wood), x, groundY(x, z) + 0.3, z)
+      if (i < 8) {
+        const u2 = u + FIELD.hu / 4
+        const x2 = FIELD.x + u2 * c - v * s
+        const z2 = FIELD.z + u2 * s + v * c
+        rod(scene, new THREE.Vector3(x, groundY(x, z) + 0.5, z), new THREE.Vector3(x2, groundY(x2, z2) + 0.5, z2), 0.03, M.wood, 4)
+      }
+    }
+  }
+
+  // ---------- lake life ----------
+  {
+    const dock = new THREE.Group()
+    dock.position.set(-9.6, LAKE_LEVEL + 0.25, 13.1)
+    scene.add(dock)
+    put(dock, box(3.2, 0.1, 1.1, M.wood), 0, 0, 0)
+    for (let i = 0; i < 6; i++) put(dock, box(0.04, 0.02, 1.12, M.woodDark), -1.4 + i * 0.55, 0.06, 0, { shadow: false })
+    for (const [px, pz] of [[-1.5, -0.5], [-1.5, 0.5], [0.2, -0.5], [0.2, 0.5]]) put(dock, cyl(0.07, 0.07, 1.2, M.woodDark, 6), px, -0.4, pz)
+
+    const boat = new THREE.Group()
+    scene.add(boat)
+    const hull = new THREE.Mesh(geo('hull', () => new THREE.SphereGeometry(1, 18, 10, 0, TAU, Math.PI / 2, Math.PI / 2)), mat('#b9855b', { side: THREE.DoubleSide }))
+    put(boat, hull, 0, 0.3, 0, { s: [0.55, 0.38, 1.2] })
+    put(boat, box(0.95, 0.05, 0.25, M.woodDark), 0, 0.22, 0.2)
+    const fisher = person({ coat: '#6f98a9', hair: '#5d4637', pants: '#5c5045', sitting: true })
+    flatCap(fisher, '#d9918a')
+    fisher.g.position.set(0, 0.27 - 0.52 * fisher.s + 0.05, 0.2)
+    fisher.g.rotation.y = Math.PI
+    boat.add(fisher.g)
+    fisher.arms.forEach((a) => (a.rotation.x = -1.0))
+    const rodTip = new THREE.Vector3(0.6, 2.0, -2.0)
+    rod(boat, new THREE.Vector3(0, 0.95, -0.25), rodTip, 0.015, M.woodDark, 4)
+    rod(boat, rodTip, new THREE.Vector3(0.6, -0.1, -2.4), 0.004, M.white, 3)
+    put(boat, sph(0.05, mat('#d6655d'), 8, 6), 0.6, 0.02, -2.4, { shadow: false })
+    const ripples = []
+    for (let i = 0; i < 3; i++) {
+      const rm = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.5, depthWrite: false })
+      const ring = new THREE.Mesh(geo('ripple', () => new THREE.RingGeometry(0.9, 1, 32)), rm)
+      ring.rotation.x = -Math.PI / 2
+      scene.add(ring)
+      ripples.push({ ring, rm, ph: i / 3 })
+    }
+    const bx = LAKE.x - 0.8
+    const bz = LAKE.z + 0.5
+    onFrame((t) => {
+      boat.position.set(bx, LAKE_LEVEL - 0.08 + Math.sin(t * 1.3) * 0.04, bz)
+      boat.rotation.set(Math.sin(t * 1.1) * 0.03, 0.8 + Math.sin(t * 0.2) * 0.2, Math.sin(t * 1.4) * 0.03)
+      const tipW = new THREE.Vector3(0.6, -0.1, -2.4).applyEuler(boat.rotation).add(boat.position)
+      for (const r of ripples) {
+        const k = (t * 0.35 + r.ph) % 1
+        r.ring.position.set(tipW.x, LAKE_LEVEL + 0.02, tipW.z)
+        r.ring.scale.setScalar(0.2 + k * 1.6)
+        r.rm.opacity = (1 - k) * 0.55
+      }
+    })
+
+    const swans = []
+    for (let i = 0; i < 2; i++) {
+      const sw = new THREE.Group()
+      put(sw, sph(0.3, M.white, 12, 10), 0, 0.12, 0, { s: [0.75, 0.55, 1.1] })
+      put(sw, cyl(0.05, 0.06, 0.5, M.white, 6), 0, 0.42, 0.22, { rx: -0.2 })
+      put(sw, sph(0.08, M.white, 8, 6), 0, 0.68, 0.28)
+      put(sw, cone(0.03, 0.12, mat('#e9a14a'), 5), 0, 0.66, 0.4, { rx: Math.PI / 2 })
+      put(sw, cone(0.18, 0.3, M.white, 6), 0, 0.22, -0.32, { rx: -2.2 })
+      scene.add(sw)
+      swans.push(sw)
+    }
+    onFrame((t) => {
+      swans.forEach((sw, i) => {
+        const a = t * 0.12 + i * 0.5
+        sw.position.set(LAKE.x + Math.cos(a) * 3.8 + i * 0.6, LAKE_LEVEL, LAKE.z + Math.sin(a) * 3.8)
+        sw.rotation.y = -a
+      })
+    })
+    const pad = mat('#7fb874', { side: THREE.DoubleSide })
+    for (let i = 0; i < 16; i++) {
+      const a = rand() * TAU
+      const rr = R(2.6, 6.0)
+      const x = LAKE.x + Math.cos(a) * rr
+      const z = LAKE.z + Math.sin(a) * rr
+      const lp = new THREE.Mesh(geo('lily', () => new THREE.CircleGeometry(0.32, 14, 0.3, TAU - 0.6)), pad)
+      put(scene, lp, x, LAKE_LEVEL + 0.02, z, { rx: -Math.PI / 2, rz: rand() * TAU, shadow: false })
+      if (i % 3 === 0) put(scene, cone(0.1, 0.12, mat('#f4b6c6'), 6), x, LAKE_LEVEL + 0.08, z, { shadow: false })
+    }
+    for (let i = 0; i < 46; i++) {
+      const a = rand() * TAU
+      if (Math.abs(a - STREAM_ANGLE) < 0.3) continue
+      const rr = R(6.6, 7.8)
+      const x = LAKE.x + Math.cos(a) * rr
+      const z = LAKE.z + Math.sin(a) * rr
+      const y = Math.max(groundY(x, z), LAKE_LEVEL)
+      const h = R(0.7, 1.3)
+      addInstance('reed', x, y + h / 2, z, 1, h, 1, 0, null, R(-0.1, 0.1), R(-0.1, 0.1))
+      if (i % 2) addInstance('cattail', x, y + h, z, 1, 1, 1)
+    }
+  }
+
+  // ---------- meadow, shepherd ----------
+  {
+    const shepherd = person({ coat: '#c9a97d', hair: '#7a5232', pants: '#7d6a5a' })
+    put(shepherd.head, sph(0.2, mat('#a88760'), 12, 8), 0, 0.04, -0.03, { s: [1, 1, 1.05] })
+    put(shepherd.arms[1], cyl(0.02, 0.02, 1.8, M.woodDark, 5), 0, 0.15, 0.06, { shadow: false })
+    put(shepherd.arms[1], new THREE.Mesh(geo('crook', () => new THREE.TorusGeometry(0.12, 0.02, 5, 10, Math.PI)), M.woodDark), 0.12, 1.05, 0.06, { shadow: false })
+    shepherd.arms[1].rotation.x = -0.3
+    const shx = MEADOW.x - 2.5
+    const shz = MEADOW.z - 1
+    shepherd.g.position.set(shx, groundY(shx, shz), shz)
+    shepherd.g.rotation.y = 0.6
+    scene.add(shepherd.g)
+    const flock = []
+    for (let i = 0; i < 7; i++) {
+      const sh = sheep()
+      sh.g.scale.setScalar(R(0.8, 1))
+      scene.add(sh.g)
+      flock.push({ sh, cx: MEADOW.x + R(-4, 4), cz: MEADOW.z + R(-3, 3), r: R(0.3, 1.2), sp: R(0.05, 0.12), ph: rand() * TAU })
+    }
+    onFrame((t) => {
+      for (const f of flock) {
+        const a = t * f.sp + f.ph
+        const x = f.cx + Math.cos(a) * f.r
+        const z = f.cz + Math.sin(a) * f.r
+        f.sh.g.position.set(x, groundY(x, z), z)
+        f.sh.g.rotation.y = -a
+        f.sh.head.rotation.x = Math.max(0, Math.sin(t * 0.7 + f.ph)) * 0.7
+      }
+      shepherd.head.rotation.y = Math.sin(t * 0.4) * 0.5
+    })
+  }
+
+  // ---------- hill, traveler ----------
+  const HILL_TOP = new THREE.Vector3(HILL.x, terrainH(HILL.x, HILL.z), HILL.z)
+  const OUT = new THREE.Vector3(HILL.x, 0, HILL.z).normalize()
+  {
+    const trav = person({ coat: '#86b47f', pants: '#86b47f', hair: '#f3d27a', shoes: '#6d5a4a', s: 0.9 })
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * TAU
+      put(trav.head, cone(0.045, 0.14, mat('#f3d27a'), 5), Math.cos(a) * 0.1, 0.17, Math.sin(a) * 0.1 - 0.02, { rx: Math.sin(a) * 0.5, rz: -Math.cos(a) * 0.5 })
+    }
+    put(trav.inner, new THREE.Mesh(geo('scarfring', () => new THREE.TorusGeometry(0.13, 0.05, 6, 14)), mat('#f2c14e')), 0, 1.02, 0, { rx: Math.PI / 2 })
+    const tail = new THREE.Group()
+    tail.position.set(0.06, 1.02, -0.1)
+    trav.inner.add(tail)
+    const tailMesh = new THREE.Mesh(geo('scarftail', () => {
+      const g = new THREE.PlaneGeometry(0.6, 0.11, 10, 1)
+      g.translate(-0.3, 0, 0)
+      return g
+    }), mat('#f2c14e', { side: THREE.DoubleSide }))
+    tail.add(tailMesh)
+    tail.rotation.y = -Math.PI / 2 + 0.3
+    const tailBase = tailMesh.geometry.attributes.position.array.slice()
+    const ty = HILL_TOP.y - 0.05
+    trav.g.position.set(HILL_TOP.x, ty, HILL_TOP.z)
+    trav.g.rotation.y = Math.atan2(OUT.x, OUT.z)
+    scene.add(trav.g)
+    const fx = fox()
+    const side = new THREE.Vector3(-OUT.z, 0, OUT.x)
+    const fpos = HILL_TOP.clone().addScaledVector(side, 0.8).addScaledVector(OUT, 0.2)
+    fx.g.position.set(fpos.x, terrainH(fpos.x, fpos.z) - 0.05, fpos.z)
+    fx.g.rotation.y = Math.atan2(OUT.x, OUT.z) - 0.5
+    scene.add(fx.g)
+    onFrame((t) => {
+      const arr = tailMesh.geometry.attributes.position.array
+      for (let i = 0; i < arr.length; i += 3) {
+        const x = tailBase[i]
+        arr[i + 2] = Math.sin(x * 9 + t * 6) * 0.06 * -x
+        arr[i + 1] = tailBase[i + 1] + Math.sin(x * 5 + t * 4) * 0.03 * -x
+      }
+      tailMesh.geometry.attributes.position.needsUpdate = true
+      fx.tail.rotation.y = Math.sin(t * 1.5) * 0.3
+      trav.head.rotation.x = -0.15 + Math.sin(t * 0.3) * 0.05
+    })
+    for (let i = 0; i < 26; i++) {
+      const a = rand() * TAU
+      const rr = R(1.5, 9)
+      const x = HILL.x + Math.cos(a) * rr
+      const z = HILL.z + Math.sin(a) * rr
+      const sc = R(0.3, 1.1)
+      addInstance('rock', x, terrainH(x, z) + sc * 0.3, z, sc, sc * R(0.6, 1), sc, rand() * 3, null, rand(), rand())
+    }
+  }
+
+  // ---------- vegetation ----------
+  const blocked = (x, z, margin = 0) => {
+    if (castleSE(x, z) < 17.5 + margin) return true
+    if (Math.hypot(x - LAKE.x, z - LAKE.z) < 8.3 + margin) return true
+    const { u, v } = fieldUV(x, z)
+    if (Math.abs(u) < FIELD.hu + 1.2 && Math.abs(v) < FIELD.hv + 1.2) return true
+    if (pathDistance(x, z) < 1.6) return true
+    if (distToSegment(x, z, STREAM.ax, STREAM.az, STREAM.bx, STREAM.bz) < 1.8) return true
+    const houses = [[13.5, 7.5], [17.5, 7.6], [11.4, 18.8], [14.8, 22], [21.6, 20], [23.8, 10.5], [21.8, 17]]
+    for (const [hx, hz] of houses) if (Math.hypot(x - hx, z - hz) < 3) return true
+    if (Math.hypot(x - HILL.x, z - HILL.z) < 2.2) return true
+    const r = Math.hypot(x, z)
+    if (r > rimRadius(Math.atan2(z, x)) * 0.94) return true
+    return false
+  }
+  {
+    const pineCols = ['#5f9a6b', '#6aa574', '#558f66', '#79b07c'].map((c) => new THREE.Color(c))
+    const roundCols = ['#86b874', '#9cc77f', '#77ad6c', '#f2bfc8', '#f6d38a'].map((c) => new THREE.Color(c))
+    const plantPine = (x, z, s) => {
+      const y = terrainH(x, z)
+      addInstance('trunk', x, y + 0.5 * s, z, s, s, s)
+      const col = pineCols[Math.floor(rand() * pineCols.length)]
+      for (let k = 0; k < 3; k++) addInstance('pine', x, y + (1.3 + k * 0.85) * s, z, (1.15 - k * 0.28) * s, 1.5 * s, (1.15 - k * 0.28) * s, rand() * 3, col)
+    }
+    const plantRound = (x, z, s, blossom) => {
+      const y = terrainH(x, z)
+      addInstance('trunk', x, y + 0.6 * s, z, s, s * 1.2, s)
+      const col = blossom ? roundCols[3 + Math.floor(rand() * 2)] : roundCols[Math.floor(rand() * 3)]
+      addInstance('canopy', x, y + 1.9 * s, z, s, s * 0.9, s, rand() * 3, col)
+      addInstance('canopy', x + 0.4 * s, y + 1.6 * s, z + 0.2 * s, s * 0.7, s * 0.6, s * 0.7, rand() * 3, col)
+    }
+    let n = 0
+    while (n < 70) {
+      const a = rand() * TAU
+      const rr = Math.sqrt(rand()) * 10
+      const x = FOREST.x + Math.cos(a) * rr
+      const z = FOREST.z + Math.sin(a) * rr
+      n++
+      if (blocked(x, z)) continue
+      plantPine(x, z, R(0.8, 1.5))
+    }
+    for (let i = 0; i < 90; i++) {
+      const a = rand() * TAU
+      const rr = Math.sqrt(rand()) * ISLAND_R
+      const x = Math.cos(a) * rr
+      const z = Math.sin(a) * rr
+      if (blocked(x, z, 1)) continue
+      if (Math.hypot(x - FOREST.x, z - FOREST.z) < 11) continue
+      if (gauss(x - MEADOW.x, z - MEADOW.z, 5) > 0.4) continue
+      if (gauss(x - HILL.x, z - HILL.z, 6.5) > 0.45) continue
+      if (rand() < 0.45) plantRound(x, z, R(0.7, 1.2), rand() < 0.35)
+      else if (rand() < 0.5) plantPine(x, z, R(0.6, 1.1))
+    }
+    const shroom = mat('#e46a63')
+    for (let i = 0; i < 16; i++) {
+      const a = rand() * TAU
+      const rr = R(2, 9)
+      const x = FOREST.x + Math.cos(a) * rr
+      const z = FOREST.z + Math.sin(a) * rr
+      if (blocked(x, z)) continue
+      const y = terrainH(x, z)
+      const s = R(0.6, 1.2)
+      put(scene, cyl(0.05 * s, 0.07 * s, 0.22 * s, M.white, 6), x, y + 0.11 * s, z, { shadow: false })
+      put(scene, new THREE.Mesh(geo('cap', () => new THREE.SphereGeometry(0.16, 10, 6, 0, TAU, 0, Math.PI / 2)), shroom), x, y + 0.2 * s, z, { s, shadow: false })
+    }
+
+    const flowerCols = ['#f4a9b8', '#fdf3c4', '#c9a7e3', '#ffffff', '#f6c56f', '#a9c8f0'].map((c) => new THREE.Color(c))
+    for (let i = 0; i < 1600; i++) {
+      const a = rand() * TAU
+      const rr = Math.sqrt(rand()) * ISLAND_R
+      const x = Math.cos(a) * rr
+      const z = Math.sin(a) * rr
+      const dens = gauss(x - MEADOW.x, z - MEADOW.z, 7) + 0.12 + 0.4 * gauss(x - LAKE.x, z - LAKE.z, 10)
+      if (rand() > dens) continue
+      if (castleSE(x, z) < 14.5) continue
+      if (Math.hypot(x - LAKE.x, z - LAKE.z) < 7.6) continue
+      const { u, v } = fieldUV(x, z)
+      if (Math.abs(u) < FIELD.hu && Math.abs(v) < FIELD.hv) continue
+      if (pathDistance(x, z) < 1.0) continue
+      if (rr > rimRadius(a) * 0.97) continue
+      addInstance('flower', x, terrainH(x, z) + 0.12, z, 1, 1, 1, 0, flowerCols[Math.floor(rand() * flowerCols.length)])
+    }
+    const grassCols = ['#94c47e', '#a7d18a', '#82b874', '#b5d891'].map((c) => new THREE.Color(c))
+    for (let i = 0; i < 1800; i++) {
+      const a = rand() * TAU
+      const rr = Math.sqrt(rand()) * ISLAND_R
+      const x = Math.cos(a) * rr
+      const z = Math.sin(a) * rr
+      if (castleSE(x, z) < 14.5) continue
+      if (Math.hypot(x - LAKE.x, z - LAKE.z) < 7.4) continue
+      if (gauss(x - HILL.x, z - HILL.z, 6.5) > 0.5) continue
+      const { u, v } = fieldUV(x, z)
+      if (Math.abs(u) < FIELD.hu && Math.abs(v) < FIELD.hv) continue
+      if (pathDistance(x, z) < 0.9) continue
+      if (rr > rimRadius(a) * 0.985) continue
+      const s = R(0.7, 1.3)
+      addInstance('grass', x, terrainH(x, z) + 0.15 * s, z, s, s, s, rand() * 3, grassCols[Math.floor(rand() * grassCols.length)], R(-0.2, 0.2))
+    }
+    for (let i = 0; i < 30; i++) {
+      const a = rand() * TAU
+      const rr = rimRadius(a) * R(0.86, 0.95)
+      const x = Math.cos(a) * rr
+      const z = Math.sin(a) * rr
+      if (blocked(x, z) && castleSE(x, z) < 17.5) continue
+      const sc = R(0.3, 0.8)
+      addInstance('rock', x, terrainH(x, z) + sc * 0.2, z, sc, sc * 0.7, sc, rand() * 3, null, rand(), rand())
+    }
+  }
+
+  // ---------- floating islets ----------
+  const islets = []
+  function makeIslet(x, y, z, r) {
+    const g = new THREE.Group()
+    g.position.set(x, y, z)
+    scene.add(g)
+    put(g, cyl(r, r * 0.92, 0.45, mat('#a3cd8a'), 18), 0, 0, 0)
+    put(g, cone(r * 0.92, r * 2.3, mat('#b8a8c2'), 18), 0, -0.225 - r * 1.15, 0, { rx: Math.PI })
+    put(g, cone(r * 0.6, r * 1.2, mat('#c9b195'), 14), 0, -0.4 - r * 0.6, 0, { rx: Math.PI, ry: 0.4 })
+    islets.push({ g, baseY: y, ph: rand() * TAU, sp: R(0.3, 0.55) })
+    return g
+  }
+  const lampIslet = makeIslet(-44, 10, -18, 3.4)
+  {
+    put(lampIslet, cyl(0.07, 0.1, 3.0, mat('#4f5470'), 8), 0.6, 1.7, 0)
+    put(lampIslet, box(0.42, 0.55, 0.42, lampMat), 0.6, 3.45, 0, { shadow: false })
+    put(lampIslet, cone(0.38, 0.35, mat('#4f5470'), 4), 0.6, 3.9, 0, { ry: Math.PI / 4 })
+    addPointLight(lampIslet, 0.6, 3.4, 0, '#ffd27a', 0, 14)
+    const lighter = person({ coat: '#4f5d86', hair: '#5d4637', pants: '#3f4767' })
+    flatCap(lighter, '#4f5d86')
+    lighter.arms[1].rotation.x = -2.4
+    put(lighter.arms[1], cyl(0.015, 0.015, 1.6, M.woodDark, 4), 0, -0.9, 0.05, { shadow: false })
+    lighter.g.position.set(-0.3, 0.22, 0.4)
+    lighter.g.rotation.y = 1.2
+    lampIslet.add(lighter.g)
+    put(lampIslet, new THREE.Mesh(geo('ico1', () => new THREE.IcosahedronGeometry(1, 1)), mat('#86b874')), -1.6, 0.6, -1.2, { s: 0.6 })
+  }
+  const roseIslet = makeIslet(42, 7, 24, 2.8)
+  {
+    put(roseIslet, cyl(0.03, 0.03, 0.8, mat('#6fa564'), 6), 0, 0.62, 0)
+    for (const sx of [-1, 1]) put(roseIslet, sph(0.1, mat('#86b874'), 8, 6), sx * 0.1, 0.55, 0, { s: [1.4, 0.4, 0.7], rz: sx * 0.4 })
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * TAU
+      put(roseIslet, sph(0.11, mat('#e05a66'), 10, 8), Math.cos(a) * 0.07, 1.07 + (i % 2) * 0.04, Math.sin(a) * 0.07, { s: [1, 1.2, 1] })
+    }
+    put(roseIslet, sph(0.09, mat('#c8404f'), 10, 8), 0, 1.17, 0)
+    const dome = new THREE.Mesh(geo('dome', () => new THREE.SphereGeometry(0.75, 24, 14, 0, TAU, 0, Math.PI / 2)), glassMat)
+    put(roseIslet, dome, 0, 0.22, 0, { s: [1, 1.7, 1], shadow: false })
+    put(roseIslet, cyl(0.78, 0.8, 0.06, M.gold, 24), 0, 0.25, 0)
+    for (let i = 0; i < 3; i++) put(roseIslet, cone(0.12, 0.5, mat('#86b874'), 5), R(-1.8, 1.8), 0.45, R(-1.8, 1.8))
+  }
+  makeIslet(-30, -8, 34, 1.7)
+  const treeIslet = makeIslet(36, 16, -32, 2.2)
+  put(treeIslet, cyl(0.12, 0.16, 1.4, M.trunk, 8), 0, 0.9, 0)
+  put(treeIslet, new THREE.Mesh(geo('ico1', () => new THREE.IcosahedronGeometry(1, 1)), mat('#f2bfc8')), 0, 2.1, 0, { s: 0.95 })
+  makeIslet(-14, -16, -46, 1.3)
+  makeIslet(10, 24, 46, 1.1)
+  onFrame((t) => {
+    for (const is of islets) {
+      is.g.position.y = is.baseY + Math.sin(t * is.sp + is.ph) * 0.6
+      is.g.rotation.y = Math.sin(t * 0.1 + is.ph) * 0.1
+    }
+  })
+
+  // ---------- clouds ----------
+  const cloudGroup = new THREE.Group()
+  scene.add(cloudGroup)
+  {
+    const cg = geo('cloudball', () => new THREE.SphereGeometry(1, 14, 10))
+    const makeCloud = (x, y, z, s) => {
+      const c = new THREE.Group()
+      c.position.set(x, y, z)
+      const n = 5 + Math.floor(rand() * 4)
+      for (let i = 0; i < n; i++) {
+        const m = new THREE.Mesh(cg, cloudMat)
+        const sc = s * R(0.5, 1)
+        m.scale.set(sc * 1.2, sc * 0.75, sc)
+        m.position.set((i - n / 2) * s * 0.7 + R(-0.3, 0.3) * s, R(-0.2, 0.4) * s, R(-0.5, 0.5) * s)
+        c.add(m)
+      }
+      cloudGroup.add(c)
+    }
+    for (let i = 0; i < 22; i++) {
+      const a = rand() * TAU
+      const rr = R(55, 140)
+      makeCloud(Math.cos(a) * rr, R(-30, 34), Math.sin(a) * rr, R(3, 7))
+    }
+    for (let i = 0; i < 8; i++) {
+      const a = rand() * TAU
+      const rr = R(22, 40)
+      makeCloud(Math.cos(a) * rr, R(-24, -10), Math.sin(a) * rr, R(2.5, 4.5))
+    }
+  }
+  onFrame((t, dt) => {
+    cloudGroup.rotation.y += dt * 0.006
+  })
+
+  // ---------- birds ----------
+  {
+    const birdMat = mat('#5b6080', { side: THREE.DoubleSide })
+    const wingGeo = new THREE.BufferGeometry()
+    wingGeo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0.18, 0, 0, -0.18, 0.75, 0, -0.05], 3))
+    wingGeo.computeVertexNormals()
+    const birds = []
+    for (let i = 0; i < 9; i++) {
+      const b = new THREE.Group()
+      put(b, sph(0.12, birdMat, 8, 6), 0, 0, 0, { s: [0.8, 0.7, 1.6], shadow: false })
+      const wl = new THREE.Mesh(wingGeo, birdMat)
+      const wr = new THREE.Mesh(wingGeo, birdMat)
+      wr.scale.x = -1
+      b.add(wl, wr)
+      scene.add(b)
+      birds.push({ b, wl, wr, r: R(36, 52), y: R(16, 28), sp: R(0.08, 0.13), ph: (i / 9) * 0.9 + (i > 4 ? 3 : 0) })
+    }
+    onFrame((t) => {
+      for (const bd of birds) {
+        const a = t * bd.sp + bd.ph
+        bd.b.position.set(Math.cos(a) * bd.r, bd.y + Math.sin(t * 0.8 + bd.ph) * 1.2, Math.sin(a) * bd.r)
+        bd.b.rotation.y = -a
+        const f = Math.sin(t * 7 + bd.ph * 10) * 0.6
+        bd.wl.rotation.z = f
+        bd.wr.rotation.z = -f
+      }
+    })
+  }
+
+  // ---------- fireflies ----------
+  const fireflyGeo = new THREE.BufferGeometry()
+  const FF = 360
+  const ffBase = []
+  {
+    const arr = new Float32Array(FF * 3)
+    for (let i = 0; i < FF; i++) {
+      const a = rand() * TAU
+      const rr = Math.sqrt(rand()) * ISLAND_R * 0.95
+      const x = Math.cos(a) * rr
+      const z = Math.sin(a) * rr
+      const y = terrainH(x, z) + R(0.6, 9)
+      ffBase.push([x, y, z, rand() * TAU])
+      arr.set([x, y, z], i * 3)
+    }
+    fireflyGeo.setAttribute('position', new THREE.BufferAttribute(arr, 3))
+  }
+  const fireflyMat = new THREE.PointsMaterial({ size: 0.38, map: circleTex, color: '#ffe7a3', transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending })
+  scene.add(new THREE.Points(fireflyGeo, fireflyMat))
+  onFrame((t) => {
+    const arr = fireflyGeo.attributes.position.array
+    for (let i = 0; i < FF; i++) {
+      const [x, y, z, ph] = ffBase[i]
+      arr[i * 3] = x + Math.sin(t * 0.4 + ph) * 0.8
+      arr[i * 3 + 1] = y + Math.sin(t * 0.6 + ph * 2) * 0.6
+      arr[i * 3 + 2] = z + Math.cos(t * 0.35 + ph) * 0.8
+    }
+    fireflyGeo.attributes.position.needsUpdate = true
+  })
+
+  // ---------- instanced flush ----------
+  flushInstances('merlon', new THREE.BoxGeometry(0.5, 0.6, 0.36), M.stone)
+  flushInstances('slit', new THREE.BoxGeometry(0.18, 0.7, 0.06), M.slit, false)
+  flushInstances('book', new THREE.BoxGeometry(1, 1, 1), M.instWhite, false)
+  flushInstances('trunk', new THREE.CylinderGeometry(0.12, 0.17, 1, 7), M.trunk)
+  flushInstances('pine', new THREE.ConeGeometry(1, 1, 9), M.pine)
+  flushInstances('canopy', new THREE.IcosahedronGeometry(1, 1), M.instWhite)
+  flushInstances('flower', new THREE.IcosahedronGeometry(0.1, 0), M.instWhite, false)
+  flushInstances('grass', new THREE.ConeGeometry(0.07, 0.36, 4), M.instWhite, false)
+  flushInstances('wheat', new THREE.ConeGeometry(0.08, 1, 5), M.instWhite, false)
+  flushInstances('rock', new THREE.DodecahedronGeometry(1, 0), mat('#bfb6ca'))
+  flushInstances('reed', new THREE.CylinderGeometry(0.02, 0.03, 1, 4), mat('#8fae6a'), false)
+  flushInstances('cattail', new THREE.CapsuleGeometry(0.05, 0.16, 2, 6), mat('#8a6448'), false)
+
+  for (const g of interiorGroups) {
+    g.traverse((o) => {
+      if (o.isMesh) o.castShadow = false
+    })
+  }
+
+  // ---------- views ----------
+  const v3 = (x, y, z) => new THREE.Vector3(x, y, z)
+  const WF = v3(STREAM_DIR.x * RIM_AT_STREAM, 0, STREAM_DIR.z * RIM_AT_STREAM)
+  const WT = v3(-STREAM_DIR.z, 0, STREAM_DIR.x)
+  const SIDE = v3(-OUT.z, 0, OUT.x)
+  const VIEWS = {
+    overview: { pos: v3(62, 40, 68), target: v3(0, 0, 0) },
+    gatehouse: { pos: v3(7, 9, 21), target: v3(0, 5.5, 6) },
+    walls: { pos: v3(-25, 13, 6), target: v3(-8, 5, -3) },
+    courtyard: { pos: v3(-9, 16, 13), target: v3(0, 3.5, -1) },
+    'great-hall': { pos: v3(2.2, 5.6, 0.8), target: v3(0, 4.4, -7.6) },
+    bedchamber: { pos: v3(2.2, 8.6, 0.6), target: v3(0, 7.3, -7.6) },
+    library: { pos: v3(2.2, 11.6, 0.6), target: v3(0, 10.3, -7.6) },
+    stair: { pos: v3(8.8, 10, -1.5), target: v3(4.9, 7.5, -9) },
+    'star-tower': { pos: v3(19, 20, -2), target: v3(8.5, 14, -11.5) },
+    chapel: { pos: v3(-3.5, 9.5, 2.5), target: v3(-6.2, 5, -9.5) },
+    kitchen: { pos: v3(0, 7.5, 5), target: v3(-4.5, 4, -1.5) },
+    smithy: { pos: v3(1.2, 7.5, 6.5), target: v3(5.8, 4, -0.2) },
+    king: { pos: v3(0.6, 5.3, -5.0), target: v3(0, 4.3, -9.7) },
+    princess: { pos: v3(1.2, 8.2, -3.0), target: v3(-0.7, 7.1, -7.0) },
+    scribe: { pos: v3(1.8, 11.2, -3.2), target: v3(0.4, 10.0, -7.3) },
+    page: { pos: v3(8.8, 10, -1.5), target: v3(4.9, 7.5, -9) },
+    astronomer: { pos: v3(16.5, 17, -19), target: v3(10.3, 15, -13.3) },
+    knights: { pos: v3(5, 12.5, -22), target: v3(0, 8, -11.5) },
+    guards: { pos: v3(4.5, 5.5, 19), target: v3(0, 4, 11.5) },
+    blacksmith: { pos: v3(1.2, 7.5, 6.5), target: v3(5.8, 4, -0.2) },
+    cook: { pos: v3(0, 7.5, 5), target: v3(-4.5, 4, -1.5) },
+    farmer: { pos: v3(27, 10, 26), target: v3(16.5, 2, 13) },
+    shepherd: { pos: v3(-10, 8, 35), target: v3(-1, 2, 22) },
+    fisherman: { pos: v3(-6, 8, 25), target: v3(-15, 1, 13) },
+    traveler: {
+      pos: HILL_TOP.clone().addScaledVector(OUT, -4.6).addScaledVector(SIDE, 2.2).add(v3(0, 2.8, 0)),
+      target: HILL_TOP.clone().addScaledVector(OUT, 2.2).add(v3(0, 1.0, 0)),
+    },
+    lamplighter: { pos: v3(-34, 15, -8), target: v3(-44, 11.5, -18) },
+    meadow: { pos: v3(-12, 10, 38), target: v3(-1, 2, 22) },
+    forest: { pos: v3(-34, 14, -30), target: v3(-19, 3, -12) },
+    lake: { pos: v3(-4, 10, 28), target: v3(-15, 1, 13) },
+    waterfall: { pos: WF.clone().addScaledVector(STREAM_DIR_V(), 24).addScaledVector(WT, 12).add(v3(0, -4, 0)), target: WF.clone().addScaledVector(STREAM_DIR_V(), 2).add(v3(0, -9, 0)) },
+    hill: { pos: v3(38, 18, -34), target: v3(19, 5, -16) },
+    village: { pos: v3(4, 13, 32), target: v3(15, 2, 14) },
+    fields: { pos: v3(34, 11, 22), target: v3(20, 3, 12) },
+    underside: { pos: v3(42, -22, 44), target: v3(0, -14, 0) },
+    islets: { pos: v3(-76, 34, 66), target: v3(0, 4, 0) },
+    rose: { pos: v3(48, 10, 31), target: v3(42, 7.8, 24) },
+    sky: { pos: v3(34, 4, 82), target: v3(0, 20, 0) },
+    fireflies: { pos: v3(-26, 13, 30), target: v3(0, 4, 0) },
+  }
+  function STREAM_DIR_V() {
+    return v3(STREAM_DIR.x, 0, STREAM_DIR.z)
+  }
+
+  // ---------- time of day ----------
+  const cur = {}
+  const target = {}
+  const colorKeys = ['skyTop', 'skyHorizon', 'skyBottom', 'fog', 'sunColor', 'hemiSky', 'hemiGround', 'disc']
+  const numKeys = ['sunIntensity', 'hemiIntensity', 'windows', 'stars', 'lamps', 'fireflies', 'crystals', 'discSize', 'glow']
+  const applyPreset = (dst, p) => {
+    for (const k of colorKeys) dst[k] = new THREE.Color(p[k])
+    for (const k of numKeys) dst[k] = p[k]
+    dst.sunPos = new THREE.Vector3(...p.sunPos)
+  }
+  applyPreset(cur, TIME_PRESETS.day)
+  applyPreset(target, TIME_PRESETS.day)
+
+  // ---------- camera flight ----------
+  let flight = null
+  function flyTo(key) {
+    const v = VIEWS[key]
+    if (!v) return
+    flight = { fromPos: camera.position.clone(), fromTarget: controls.target.clone(), toPos: v.pos.clone(), toTarget: v.target.clone(), t: 0, dur: 1.8 }
+  }
+
+  // ---------- loop ----------
+  const clock = new THREE.Clock()
+  let elapsed = 0
+  let readyFired = false
+  const tmpDir = new THREE.Vector3()
+  function frame() {
+    const rawDt = clock.getDelta()
+    const dt = Math.min(rawDt, 0.05)
+    elapsed += dt
+    const t = elapsed
+
+    const k = 1 - Math.exp(-Math.min(rawDt, 0.5) * 2.2)
+    for (const key of colorKeys) cur[key].lerp(target[key], k)
+    for (const key of numKeys) cur[key] = lerp(cur[key], target[key], k)
+    cur.sunPos.lerp(target.sunPos, k)
+
+    skyUniforms.uTop.value.copy(cur.skyTop)
+    skyUniforms.uHorizon.value.copy(cur.skyHorizon)
+    skyUniforms.uBottom.value.copy(cur.skyBottom)
+    skyUniforms.uSunColor.value.copy(cur.sunColor)
+    skyUniforms.uGlow.value = cur.glow
+    tmpDir.copy(cur.sunPos).normalize()
+    skyUniforms.uSunDir.value.copy(tmpDir)
+    scene.fog.color.copy(cur.fog)
+    sun.color.copy(cur.sunColor)
+    sun.intensity = cur.sunIntensity
+    sun.position.copy(tmpDir).multiplyScalar(130)
+    hemi.color.copy(cur.hemiSky)
+    hemi.groundColor.copy(cur.hemiGround)
+    hemi.intensity = cur.hemiIntensity
+    windowMat.emissiveIntensity = cur.windows
+    crystalMat.emissiveIntensity = cur.crystals
+    starMat.opacity = cur.stars
+    fireflyMat.opacity = cur.fireflies
+    lampMat.color.setRGB(0.49 + cur.lamps * 0.51, 0.48 + cur.lamps * 0.34, 0.43 + cur.lamps * 0.05)
+    discMat.color.copy(cur.disc)
+
+    sky.position.copy(camera.position)
+    stars.position.copy(camera.position)
+    disc.position.copy(camera.position).addScaledVector(tmpDir, 480)
+    disc.scale.setScalar(cur.discSize)
+    disc.lookAt(camera.position)
+
+    for (const p of pointLights) {
+      let intensity = p.base
+      if (p.base === 0) intensity = cur.lamps * 12
+      if (p.flicker) intensity *= 0.85 + Math.sin(t * 11 + p.phase) * 0.08 + Math.sin(t * 17 + p.phase) * 0.07
+      p.light.intensity = intensity
+    }
+
+    for (const f of flags) {
+      const arr = f.mesh.geometry.attributes.position.array
+      for (let i = 0; i < arr.length; i += 3) {
+        const x = f.base[i]
+        arr[i + 2] = Math.sin(x * 4 - t * 4 + f.phase) * 0.12 * (x / f.w)
+        arr[i + 1] = f.base[i + 1] - (x / f.w) * 0.08
+      }
+      f.mesh.geometry.attributes.position.needsUpdate = true
+      f.mesh.geometry.computeVertexNormals()
+    }
+    for (const e of smokeEmitters) {
+      e.puffs.forEach((p, i) => {
+        const kk = (t * 0.22 + i / e.puffs.length + e.offset) % 1
+        p.position.set(e.x + Math.sin(kk * 4 + i) * 0.25 * e.scale + kk * 0.8 * e.scale, e.y + kk * 3.2 * e.scale, e.z + Math.cos(kk * 3 + i) * 0.2 * e.scale)
+        const sc = Math.sin(kk * Math.PI) * e.scale * (0.6 + kk)
+        p.scale.setScalar(Math.max(0.001, sc))
+      })
+    }
+    for (const fn of animations) fn(t, dt)
+
+    if (flight) {
+      flight.t += rawDt / flight.dur
+      const u = Math.min(1, flight.t)
+      const e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2
+      camera.position.lerpVectors(flight.fromPos, flight.toPos, e)
+      const lift = Math.sin(u * Math.PI) * Math.min(12, flight.fromPos.distanceTo(flight.toPos) * 0.12)
+      camera.position.y += lift
+      controls.target.lerpVectors(flight.fromTarget, flight.toTarget, e)
+      if (u >= 1) flight = null
+    }
+    controls.update(dt)
+    renderer.render(scene, camera)
+    if (!readyFired) {
+      readyFired = true
+      onReady?.()
+    }
+  }
+  renderer.setAnimationLoop(frame)
+
+  const ro = new ResizeObserver(() => {
+    const w = container.clientWidth || 1
+    const h = container.clientHeight || 1
+    renderer.setSize(w, h)
+    camera.aspect = w / h
+    camera.updateProjectionMatrix()
+  })
+  ro.observe(container)
+
+  const stopFlight = () => {
+    flight = null
+  }
+  controls.addEventListener('start', stopFlight)
+
+  return {
+    flyTo,
+    setCutaway(on) {
+      cutawayParts.forEach((c) => (c.visible = !on))
+    },
+    setTimeOfDay(name) {
+      const p = TIME_PRESETS[name]
+      if (p) applyPreset(target, p)
+    },
+    setAutoRotate(on) {
+      controls.autoRotate = on
+    },
+    dispose() {
+      renderer.setAnimationLoop(null)
+      ro.disconnect()
+      controls.removeEventListener('start', stopFlight)
+      controls.dispose()
+      scene.traverse((o) => {
+        if (o.geometry) o.geometry.dispose()
+        if (o.material) {
+          const ms = Array.isArray(o.material) ? o.material : [o.material]
+          ms.forEach((m) => m.dispose())
+        }
+      })
+      gradientMap.dispose()
+      circleTex.dispose()
+      renderer.dispose()
+      renderer.domElement.remove()
+    },
+  }
+}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#eadbd5" />
+  <title>星尘城堡 · Le Château des Étoiles</title>
+  <link rel="stylesheet" href="./style.css" />
+  <!-- 已打包为单文件 IIFE，file:// 双击可直接打开 -->
+  <script defer src="./dist/app.js"></script>
+</head>
+<body>
+  <main id="app">
+    <canvas id="scene"></canvas>
+    <div class="vignette"></div>
+    <div class="paper-grain"></div>
+
+    <header class="masthead">
+      <div class="masthead-rule"></div>
+      <p class="eyebrow">CONTE DE LA POUSSIÈRE D'ÉTOILES</p>
+      <h1>星尘城堡</h1>
+      <p class="subtitle">浮在云海之上的中世纪小王国</p>
+    </header>
+
+    <div class="free-tag">
+      <span class="free-dot"></span>
+      <span>自由视角</span>
+      <em>拖拽旋转 · 滚轮缩放 · 右键平移</em>
+    </div>
+
+    <div id="labels" class="labels" aria-label="场景地点"></div>
+
+    <section id="story" class="story" aria-live="polite">
+      <p id="story-kicker" class="story-kicker">全景 · 浮空岛</p>
+      <h2 id="story-title">云海上的星尘城堡</h2>
+      <p id="story-text" class="story-text"></p>
+    </section>
+
+    <nav class="views" aria-label="视角">
+      <button class="view-btn" data-view="overview" type="button"><span>01</span>全岛</button>
+      <button class="view-btn" data-view="hall" type="button"><span>02</span>王座大厅</button>
+      <button class="view-btn" data-view="keep" type="button"><span>03</span>城堡剖面</button>
+      <button class="view-btn" data-view="garden" type="button"><span>04</span>玫瑰园</button>
+      <button class="view-btn" data-view="observatory" type="button"><span>05</span>观星台</button>
+      <button class="view-btn" data-view="library" type="button"><span>06</span>藏书室</button>
+      <button class="view-btn" data-view="bedroom" type="button"><span>07</span>卧室</button>
+    </nav>
+
+    <div class="fine-print">
+      <span>CASTLE · FOX · ROSE</span>
+      <span class="fine-line"></span>
+      <span>按 1—7 切换视角</span>
+    </div>
+
+    <div id="loader" class="loader">
+      <div class="loader-orbit"><i></i><i></i><i></i></div>
+      <p class="loader-small">CHAPTER ONE</p>
+      <h2>正在把星星搬上天空</h2>
+      <p class="loader-note">一座城堡，一朵玫瑰，和等待被点亮的窗</p>
+    </div>
+  </main>
+
+  <!-- 入口在 head 的 dist/app.js -->
+</body>
+</html>

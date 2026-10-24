@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+import path from 'node:path';
+const file = process.argv[2], out = process.argv[3];
+const b = await chromium.launch({ executablePath: 'C://Users//Administor//AppData//Local//ms-playwright//chromium-1234//chrome-win64//chrome.exe', headless: true, args: ['--use-angle=swiftshader','--enable-unsafe-swiftshader'] });
+const p = await b.newPage({ viewport: { width: 1200, height: 1680 }, deviceScaleFactor: 1 });
+await p.goto('file:///' + path.resolve(file).replace(/\\/g,'/'), { waitUntil: 'load', timeout: 90000 });
+await p.waitForTimeout(2500);
+await p.screenshot({ path: out, type: 'jpeg', quality: 90 });
+console.log('ok', out);
+await b.close();

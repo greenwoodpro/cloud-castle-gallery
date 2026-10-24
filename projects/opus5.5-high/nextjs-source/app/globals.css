@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-noto-sans-sc), 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-serif: var(--font-noto-serif-sc), 'Noto Serif SC', 'Songti SC', serif;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+/* Storybook palette: paper, ink blue, star gold */
+:root {
+  color-scheme: light;
+  --background: #f6efe1;
+  --foreground: #24385b;
+  --card: #f8f2e6;
+  --card-foreground: #24385b;
+  --popover: #f8f2e6;
+  --popover-foreground: #24385b;
+  --primary: #24385b;
+  --primary-foreground: #f8f2e6;
+  --secondary: #ebe1cc;
+  --secondary-foreground: #24385b;
+  --muted: #ebe1cc;
+  --muted-foreground: #5b6a85;
+  --accent: #dfa645;
+  --accent-foreground: #24385b;
+  --destructive: #b5474f;
+  --border: #ddd0b6;
+  --input: #ddd0b6;
+  --ring: #dfa645;
+  --radius: 1rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+.paper {
+  background-color: color-mix(in oklab, var(--card) 92%, transparent);
+  background-image:
+    radial-gradient(circle at 20% 15%, color-mix(in oklab, var(--accent) 7%, transparent) 0, transparent 40%),
+    radial-gradient(circle at 85% 90%, color-mix(in oklab, var(--primary) 5%, transparent) 0, transparent 45%);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, var(--card) 100%, transparent) inset,
+    0 18px 40px -18px color-mix(in oklab, var(--primary) 45%, transparent);
+}
+
+.scrollbar-soft {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}

@@ -1,0 +1,20 @@
+星屿 STAR ISLE · 离线浮空城堡
+
+解压后双击 index.html 即可打开，无需联网，也无需安装任何依赖。
+需要支持 WebGL 的现代浏览器及硬件加速。
+
+左键拖动：旋转；右键拖动：平移；滚轮：缩放。
+手机：单指旋转，双指缩放和平移。
+选择城堡内部可打开剖视，查看宴会厅、藏书室、卧房与观星室。
+场景包含完整地形、溪流瀑布、树木花园、村舍、人物与动物。
+可切换晨光、落日、星夜，自动环游，保存 PNG 明信片，导出完整 GLB 模型。
+浮岛手记中有建筑、人物与环境的详细说明。
+
+source 文件夹保存完整 Next.js / React Three Fiber / Three.js 项目源码。
+推荐通过 GitHub 或 v0 的 shadcn CLI 安装源码。
+独立入口源码：source/standalone/main.ts
+程序化模型源码：source/lib/world-builder.ts、castle-builder.ts、model-kit.ts
+重新打包脚本：source/scripts/package-scene.mjs
+
+这是原创幻想城堡，建筑兼具不同欧洲中世纪风格，不是历史复原。
+项目不收集数据，离线版本不使用外部字体、纹理或网络服务。

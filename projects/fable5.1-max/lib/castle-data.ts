@@ -1,0 +1,285 @@
+export type CategoryId = 'architecture' | 'interior' | 'people' | 'terrain' | 'environment'
+
+export interface CastleItem {
+  id: string
+  category: CategoryId
+  name: string
+  summary: string
+  detail: string
+}
+
+export const categories: { id: CategoryId; label: string; description: string }[] = [
+  { id: 'architecture', label: '建筑', description: '城堡的外部结构：城墙、塔楼、主楼与附属建筑。' },
+  { id: 'interior', label: '内部', description: '开启「剖面视图」即可看见主楼内部的每一层。' },
+  { id: 'people', label: '人物', description: '住在岛上的人与动物，各自守着自己的小小日常。' },
+  { id: 'terrain', label: '地形', description: '一座浮空岛上拼接出的不同地貌。' },
+  { id: 'environment', label: '环境', description: '围绕小岛的天空、星辰与云朵。' },
+]
+
+export const castleItems: CastleItem[] = [
+  // 建筑
+  {
+    id: 'keep',
+    category: 'architecture',
+    name: '主楼（Keep）',
+    summary: '城堡最高、最坚固的核心建筑。',
+    detail:
+      '主楼是领主一家的居所，也是最后的避难所。四层楼叠在一座石砌基座之上：底层是储藏室与厨房，往上依次是王座厅、寝室与观星台。墙体厚实，窗户细小，屋顶铺着淡蓝色的石板瓦。',
+  },
+  {
+    id: 'curtain-wall',
+    category: 'architecture',
+    name: '幕墙与雉堞',
+    summary: '环绕内庭的方形石墙，顶部排列锯齿形的雉堞。',
+    detail:
+      '幕墙高约三人，顶部设有巡逻步道。雉堞之间的缺口让弓手可以探身射击，再缩回石垛后方躲避。墙面用温暖的米白色石灰岩砌成，经年累月被风染上一点点玫瑰色。',
+  },
+  {
+    id: 'towers',
+    category: 'architecture',
+    name: '角楼',
+    summary: '四座圆形角楼镇守城墙的四角，屋顶是尖尖的锥形。',
+    detail:
+      '圆形的塔身比方形更能抵御攻城锤的撞击。每座塔内有一道螺旋楼梯，顺时针向上，让守军右手持剑时占据优势。塔顶飘扬着三角旗，塔内还住着几只鸽子。',
+  },
+  {
+    id: 'gatehouse',
+    category: 'architecture',
+    name: '门楼与吊桥',
+    summary: '双塔护卫的大门，一道木吊桥横跨干壕沟。',
+    detail:
+      '门楼是城堡最薄弱也最精心防御的地方。两座矮塔夹着拱门，门后有铁闸（portcullis）可以放下。吊桥用铁链牵引，夜里收起，桥下的沟壑一直通向浮空岛的边缘，向下便是无尽的云海。',
+  },
+  {
+    id: 'great-hall',
+    category: 'architecture',
+    name: '大厅（Great Hall）',
+    summary: '带山形屋顶的长屋，宴会、审判与歌谣都在这里发生。',
+    detail:
+      '大厅紧贴主楼，长长的屋顶像一本摊开的书。里面有长桌与火炉，墙上挂着织锦。冬夜里领主在此宴请骑士，吟游诗人坐在角落的矮凳上弹琴。',
+  },
+  {
+    id: 'chapel',
+    category: 'architecture',
+    name: '小礼拜堂',
+    summary: '一座白墙小教堂，尖顶上立着金色的十字。',
+    detail:
+      '礼拜堂是城堡中最安静的角落。彩色玻璃窗把清晨的阳光染成玫瑰色和天蓝色，落在石板地上。领主的孩子们在这里学认字，老神父则在这里打盹。',
+  },
+  {
+    id: 'stable',
+    category: 'architecture',
+    name: '马厩与铁匠铺',
+    summary: '庭院一侧的木屋，一头是马厩，一头是叮当作响的铁匠炉。',
+    detail:
+      '马厩里住着两匹矮脚马和一头驴。隔壁的铁匠铺永远亮着橘红色的炉火，铁匠在这里打马蹄铁、修补锁子甲，偶尔也为小王子打一柄小小的、不会伤人的木剑配件。',
+  },
+  {
+    id: 'well',
+    category: 'architecture',
+    name: '庭院水井',
+    summary: '庭院中央的石砌水井，有一个小小的木顶棚。',
+    detail:
+      '水井深入浮空岛的岩心，井水清冽甘甜。小王子说："使井水变得美好的，是我们在星光下走过的路和辘轳的歌声。" 每天清晨厨娘都会来这里打一桶水。',
+  },
+  // 内部
+  {
+    id: 'dungeon',
+    category: 'interior',
+    name: '地下室 / 地牢',
+    summary: '藏在主楼石基座里，只有一扇带铁栏的小窗。',
+    detail:
+      '地牢其实很少关人。如今这里堆着酒桶、腌菜缸和冬天的干草，墙角蹲着一只负责抓老鼠的灰猫。铁栏窗透进一线光，正好照亮一个被遗忘的旧盾牌。',
+  },
+  {
+    id: 'kitchen',
+    category: 'interior',
+    name: '一层：厨房与储藏室',
+    summary: '巨大的壁炉、挂着的香肠与一排排面粉袋。',
+    detail:
+      '厨房的壁炉大到可以同时烤一整只羊。墙边木架上摆着陶罐、铜锅和一串串洋葱。储藏室的麻袋里装着从岛上麦田收获的小麦。厨娘总说火候是厨房里唯一的秘密。',
+  },
+  {
+    id: 'throne-room',
+    category: 'interior',
+    name: '二层：王座厅',
+    summary: '红地毯尽头的金色王座，国王正坐在上面。',
+    detail:
+      '王座厅的地上铺着一条深红色的长毯，两侧立着石柱与火把。国王身披貂皮斗篷坐在王座上——他是一个没有臣民却渴望被服从的国王，不过他只下达"合理"的命令，比如命令太阳在黄昏时落下。',
+  },
+  {
+    id: 'bedchamber',
+    category: 'interior',
+    name: '三层：寝室与藏书室',
+    summary: '一张带帷幔的床、一面书墙和一扇朝东的窗。',
+    detail:
+      '寝室的床是整座城堡最柔软的地方，床边放着一盏小油灯。另一侧的书架上堆满了地理学家的手稿，记录着他从未亲自去过的山川与河流。',
+  },
+  {
+    id: 'observatory',
+    category: 'interior',
+    name: '顶层：观星台',
+    summary: '一架黄铜望远镜对着夜空，旁边有一张星图。',
+    detail:
+      '观星台是主楼的最顶层，四面开窗。地理学家在这里数星星，也在这里第一次发现了小王子的星球 B-612。桌上摊开着一张画满螺旋线的星图。',
+  },
+  // 人物
+  {
+    id: 'prince',
+    category: 'people',
+    name: '小王子',
+    summary: '站在最高的塔顶，金色头发，长长的黄色围巾迎风飘扬。',
+    detail:
+      '小王子每天都会爬到最高的塔顶去看日落。他说在他那颗小星球上，只要挪一挪椅子，一天就能看四十四次日落。他总是在想念他的玫瑰。',
+  },
+  {
+    id: 'fox',
+    category: 'people',
+    name: '狐狸',
+    summary: '蹲在小王子脚边的橘色狐狸，已经被"驯服"了。',
+    detail:
+      '狐狸教会了小王子一个秘密："只有用心才能看得清楚，本质的东西用眼睛是看不见的。" 现在它每天下午四点准时出现在塔顶，等小王子一起看麦田——因为麦子的颜色让它想起他的头发。',
+  },
+  {
+    id: 'king',
+    category: 'people',
+    name: '国王',
+    summary: '端坐在王座厅里的国王，身披紫红色貂皮斗篷。',
+    detail:
+      '国王的斗篷大到几乎盖住了整个王座厅。他认真地统治着一切，但他的智慧在于：只命令每个人去做他们本来就会做的事。',
+  },
+  {
+    id: 'knight',
+    category: 'people',
+    name: '守门骑士',
+    summary: '站在门楼前的银甲骑士，手持长枪与盾牌。',
+    detail:
+      '骑士守在吊桥前。他的盔甲是淡淡的银蓝色，盾牌上画着一朵玫瑰。其实岛上从没有敌人来过，但他说守卫一座城堡的意义不在于敌人是否出现。',
+  },
+  {
+    id: 'blacksmith',
+    category: 'people',
+    name: '铁匠',
+    summary: '在炉火旁挥锤的壮实铁匠，围着皮围裙。',
+    detail:
+      '铁匠一下一下地敲打着铁砧，火星像小小的星星一样溅起。他是岛上唯一真正忙碌的人——因为他喜欢。他说每一块铁里都藏着一个形状，他只是帮它出来。',
+  },
+  {
+    id: 'shepherdess',
+    category: 'people',
+    name: '牧羊女与羊群',
+    summary: '草坡上的牧羊女，身边跟着几只圆滚滚的绵羊。',
+    detail:
+      '牧羊女穿着淡蓝色的裙子，手里拿着一根弯弯的牧杖。她的羊很乖，从不去吃玫瑰。小王子曾经请飞行员给他画一只羊——也许就是其中一只。',
+  },
+  {
+    id: 'lamplighter',
+    category: 'people',
+    name: '点灯人',
+    summary: '在小岛屿上守着一盏路灯的点灯人。',
+    detail:
+      '点灯人每到黄昏就点亮路灯，黎明再把它熄灭。他说这是"规定"。小王子觉得他是所有大人中唯一不可笑的一个，因为他关心的是自己以外的事情。',
+  },
+  {
+    id: 'geographer',
+    category: 'people',
+    name: '地理学家',
+    summary: '观星台里的老学者，正在用望远镜记录星辰。',
+    detail:
+      '地理学家从不离开他的书桌，他说地理学家太重要了，不能到处闲逛。但他会认真记下每一个探险家的见闻——除了那些"转瞬即逝"的东西，比如一朵花。',
+  },
+  // 地形
+  {
+    id: 'meadow',
+    category: 'terrain',
+    name: '草原与山丘',
+    summary: '岛心平缓的淡绿色草地，几座圆润的小山丘。',
+    detail:
+      '草原是浮空岛最大的一片地貌。草是柔和的嫩绿色，山丘像倒扣的碗。春天这里开满小雏菊，羊群在山丘间吃草，踩出一条条细细的小路。',
+  },
+  {
+    id: 'forest',
+    category: 'terrain',
+    name: '猴面包树林',
+    summary: '岛屿北侧一片圆冠高大的树林，像一把把绿伞。',
+    detail:
+      '猴面包树在小王子的星球上是需要尽早拔除的危险植物，但在这座岛上它们长得恰到好处，撑起一片阴凉。林间有松鼠、蘑菇和一条通往湖边的小径。',
+  },
+  {
+    id: 'lake',
+    category: 'terrain',
+    name: '湖泊与瀑布',
+    summary: '一面淡蓝色的湖，湖水从岛缘倾泻而下，化作云雾。',
+    detail:
+      '湖水来自岛心的泉眼。它平静得像一面镜子，映着天空和塔楼。在岛屿东缘，湖水溢出，顺着岩壁跌落成一道瀑布，坠入脚下的云海，再也没有回来。',
+  },
+  {
+    id: 'wheat',
+    category: 'terrain',
+    name: '麦田',
+    summary: '城堡西侧一片金色的麦田，风吹过时像海浪。',
+    detail:
+      '麦田是狐狸最爱看的地方。金色的麦子与小王子的头发同色，因此连风吹麦浪的声音也让它欢喜。秋天农人会在这里收割，然后把麦子送进主楼的储藏室。',
+  },
+  {
+    id: 'cliff',
+    category: 'terrain',
+    name: '岩石悬崖与岛底',
+    summary: '岛屿边缘裸露的淡紫灰色岩石，倒锥形的岛底垂着钟乳石。',
+    detail:
+      '浮空岛的底部是一个巨大的倒锥，布满了晶簇与悬垂的岩柱。没有人知道它为什么浮着。地理学家说这是"地理学上尚未解释的现象"，小王子说"因为它想要浮着"。',
+  },
+  {
+    id: 'islet',
+    category: 'terrain',
+    name: '小岛屿与绳桥',
+    summary: '主岛旁一块独立浮石，用一座摇摇晃晃的绳桥相连。',
+    detail:
+      '小岛屿上只有一盏路灯、一张长椅和点灯人。绳桥由麻绳和木板搭成，走上去会轻轻晃。小王子喜欢在桥中央停下来，看脚下流过的云。',
+  },
+  // 环境
+  {
+    id: 'sky',
+    category: 'environment',
+    name: '天空与日落',
+    summary: '桃色与薰衣草色渐变的天空，太阳悬在岛的西方。',
+    detail:
+      '岛上的天空永远停留在日落前的一刻：天顶是淡淡的薰衣草紫，地平线泛着桃色与金色。切换到「夜晚」模式，天空会沉入深蓝，星星一颗颗亮起来。',
+  },
+  {
+    id: 'stars',
+    category: 'environment',
+    name: '星辰与小行星',
+    summary: '远方漂浮着几颗带光环的小星球，其中一颗是 B-612。',
+    detail:
+      '夜空里散落着无数颗星星。小王子说："如果你爱着一朵在某颗星星上的花，夜里看星空就会觉得所有的星星都在开花。" 远处那颗最小的、带着淡红色光环的，就是 B-612。',
+  },
+  {
+    id: 'clouds',
+    category: 'environment',
+    name: '云朵',
+    summary: '柔软的白色云团缓缓绕着岛屿漂流。',
+    detail:
+      '云朵从岛屿下方升起又飘远，有时会穿过城墙，在庭院里留下一层薄薄的湿气。孩子们喜欢躺在草坡上，给每一朵云取名字。',
+  },
+  {
+    id: 'birds',
+    category: 'environment',
+    name: '候鸟',
+    summary: '一群候鸟围着塔楼盘旋。',
+    detail:
+      '小王子正是借助一群候鸟的迁徙离开他的星球的。现在它们每天绕着城堡飞几圈，像是在确认他过得好不好。',
+  },
+  {
+    id: 'rose',
+    category: 'environment',
+    name: '玫瑰花园',
+    summary: '庭院角落里一小丛玫瑰，其中一朵罩着玻璃罩。',
+    detail:
+      '庭院里种着一小片玫瑰，但其中只有一朵被罩在玻璃罩下，并且有一道屏风为它挡风。"正是你为你的玫瑰花费的时光，才使你的玫瑰变得如此重要。"',
+  },
+]
+
+export const itemsByCategory = (category: CategoryId) => castleItems.filter((i) => i.category === category)
+
+export const findItem = (id: string | null) => (id ? castleItems.find((i) => i.id === id) ?? null : null)

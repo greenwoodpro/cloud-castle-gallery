@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>浮空岛 · 中世纪城堡 · 小王子手绘世界</title>
+<style>
+  :root{
+    --paper:#fbf5e8; --ink:#5a5348; --ink2:#7d7465; --line:rgba(150,138,116,.38);
+    --blue:#8ea9c9; --rose:#cd8f99; --gold:#d9b573; --green:#8dbda3;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#e9f0f6;
+    font-family:Georgia,"Songti SC","STSong",'Noto Serif CJK SC',serif;color:var(--ink)}
+  #app{position:fixed;inset:0}
+  canvas{display:block}
+  .labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+  .lbl{font-size:11px;line-height:1.5;padding:1px 7px;border-radius:9px;white-space:nowrap;
+    background:rgba(251,245,232,.72);border:1px solid var(--line);color:var(--ink);
+    box-shadow:0 1px 6px rgba(120,110,90,.12);transform:translateY(-2px)}
+  .lbl.floor{background:rgba(240,220,180,.82);border-color:rgba(190,160,110,.5)}
+  .lbl.fig{font-size:10px;padding:0 5px;background:rgba(255,255,255,.5);color:var(--ink2);border-color:rgba(160,150,130,.3)}
+  .lbl.hide{display:none}
+  #paper{position:fixed;inset:0;pointer-events:none;z-index:5;mix-blend-mode:multiply;opacity:.35;
+    background-image:radial-gradient(circle at 20% 30%,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),
+      radial-gradient(circle at 80% 70%,rgba(210,200,180,.35),rgba(255,255,255,0) 60%);}
+  #vig{position:fixed;inset:0;pointer-events:none;z-index:4;
+    background:radial-gradient(ellipse at 50% 45%,rgba(255,255,255,0) 52%,rgba(150,140,120,.20) 100%)}
+  #ui{position:fixed;left:16px;top:16px;z-index:20;width:286px;max-height:calc(100vh - 32px);overflow:auto;
+    background:rgba(252,247,238,.84);backdrop-filter:blur(7px);border:1px solid var(--line);border-radius:16px;
+    padding:14px 14px 12px;box-shadow:0 10px 30px rgba(120,110,90,.18);transition:transform .5s ease,opacity .5s ease}
+  #ui.fold{transform:translateX(-320px);opacity:0}
+  #ui::-webkit-scrollbar{width:6px}
+  #ui::-webkit-scrollbar-thumb{background:rgba(160,150,130,.4);border-radius:6px}
+  h1{margin:0;font-size:17px;letter-spacing:.06em;font-weight:600}
+  h1 span{font-size:11px;letter-spacing:.22em;color:var(--ink2);display:block;margin-top:4px;font-weight:400}
+  #clock{margin:9px 0 0;font-size:12px;color:var(--ink2);letter-spacing:.1em}
+  .hr{height:1px;background:linear-gradient(90deg,var(--line),transparent);margin:11px 0 9px}
+  .grp{margin-bottom:9px}
+  .grp>span{font-size:11px;letter-spacing:.18em;color:var(--ink2)}
+  .row{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  button{font-family:inherit;font-size:11.5px;color:var(--ink);cursor:pointer;
+    background:rgba(255,255,255,.62);border:1px solid var(--line);border-radius:9px;padding:4px 8px;
+    transition:all .18s ease}
+  button:hover{background:#fff;border-color:rgba(140,130,110,.6);transform:translateY(-1px)}
+  button.on{background:linear-gradient(180deg,#f3e2c0,#e9d3a8);border-color:rgba(180,150,100,.55);
+    box-shadow:inset 0 1px 2px rgba(255,255,255,.7)}
+  .tools{display:flex;flex-wrap:wrap;gap:5px}
+  .tools button{min-width:64px}
+  #figs{display:flex;flex-wrap:wrap;gap:4px}
+  .chip{font-size:11px;padding:3px 7px;border-radius:20px;background:rgba(255,255,255,.55)}
+  .chip:hover{background:rgba(238,226,200,.95)}
+  #keys{position:fixed;left:18px;bottom:14px;z-index:18;font-size:11px;color:var(--ink2);
+    background:rgba(252,247,238,.6);border:1px solid var(--line);border-radius:12px;padding:7px 11px;line-height:1.7;
+    backdrop-filter:blur(4px)}
+  #keys b{color:var(--ink);font-weight:600}
+  #card{position:fixed;right:20px;bottom:22px;z-index:22;max-width:330px;padding:13px 15px;border-radius:16px;
+    background:rgba(252,247,238,.9);border:1px solid var(--line);box-shadow:0 12px 34px rgba(120,110,90,.22);
+    opacity:0;transform:translateY(14px);transition:all .45s ease;pointer-events:none}
+  #card.on{opacity:1;transform:none}
+  #card b{font-size:13.5px;letter-spacing:.05em}
+  #card p{margin:6px 0 0;font-size:11.5px;line-height:1.75;color:var(--ink2)}
+  #tip{position:fixed;z-index:32;pointer-events:none;font-size:11px;padding:3px 8px;border-radius:9px;
+    background:rgba(70,62,50,.82);color:#f6ead2;opacity:0;transition:opacity .2s}
+  #tip.on{opacity:1}
+  #loading{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:#f7f0e2;transition:opacity .9s ease}
+  #loading .t{font-size:22px;letter-spacing:.3em}
+  #loading .s{margin-top:10px;font-size:12px;color:var(--ink2);letter-spacing:.2em}
+  #loading .d{margin-top:22px;width:120px;height:3px;background:rgba(150,138,116,.25);border-radius:3px;overflow:hidden}
+  #loading .d i{display:block;width:40%;height:100%;background:var(--gold);animation:sl 1.3s infinite ease-in-out}
+  @keyframes sl{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+  body.ready #loading{opacity:0;pointer-events:none}
+  #brand{position:fixed;right:16px;top:16px;z-index:20;text-align:right;font-size:11px;color:var(--ink2);
+    background:rgba(252,247,238,.7);border:1px solid var(--line);border-radius:14px;padding:9px 13px;backdrop-filter:blur(5px)}
+  #brand b{display:block;font-size:12.5px;color:var(--ink);letter-spacing:.1em}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="paper"></div>
+<div id="vig"></div>
+
+<div id="ui">
+  <h1>浮空岛 · 中世纪城堡<span>LE PETIT CHÂTEAU DANS LE CIEL</span></h1>
+  <p id="clock">—</p>
+  <div class="hr"></div>
+  <div id="views"></div>
+  <div class="hr"></div>
+  <div class="grp"><span>视角开关</span>
+    <div class="row tools">
+      <button id="b-cut">剖切城堡</button>
+      <button id="b-night">黄昏 / 夜</button>
+      <button id="b-labels">地名名牌</button>
+      <button id="b-rotate">自动环绕</button>
+      <button id="b-bloom">光晕</button>
+      <button id="b-ui">收起面板</button>
+    </div>
+  </div>
+  <div class="hr"></div>
+  <div class="grp"><span>时间 <i style="font-style:normal;opacity:.6">（拖动看昼夜）</i></span>
+    <div class="row" style="align-items:center">
+      <input id="time" type="range" min="0" max="1" step="0.005" value="0.42" style="flex:1;accent-color:#d9b573" />
+      <button id="b-auto">自动</button>
+    </div>
+  </div>
+  <div class="hr"></div>
+  <div class="grp"><span>人物志 · 点名字去看他</span>
+    <div id="figs" style="margin-top:6px"></div>
+  </div>
+</div>
+
+<div id="brand"><b>小王子模式</b>水彩 · 温和 · 细腻</div>
+<div id="card"></div>
+<div id="tip"></div>
+<div id="keys">
+  <b>左键</b> 旋转 · <b>右键</b> 平移 · <b>滚轮</b> 缩放 &nbsp;|&nbsp; <b>双击</b> 聚焦 &nbsp;|&nbsp;
+  <b>C</b> 剖切 · <b>L</b> 昼夜 · <b>T</b> 名牌 · <b>A</b> 环绕 · <b>H</b> 面板
+</div>
+
+<div id="loading">
+  <div class="t">浮 空 岛</div>
+  <div class="s">正在铺纸、调色、点灯……</div>
+  <div class="d"><i></i></div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
