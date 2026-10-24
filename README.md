@@ -1,11 +1,15 @@
 # 云端城堡 · Cloud Castle Gallery
 
 > 一条提示词 × 6 个平台 × 12 个模型 × 25 座浮空城堡
+> ＋ 4 份同题 Blender 程序化建模（MCP / Bridge Agent）
 
 **在线浏览 → [greenwoodpro.github.io/cloud-castle-gallery](https://greenwoodpro.github.io/cloud-castle-gallery)**
 
 用同一句提示词，让 25 个模型各用 three.js 造一座中世纪欧洲城堡，摆在浮空岛上。
 这里是全部作品的**可运行版本**与**完整工程源码**，按平台 / 模型 / 思考强度分类，页面上可以直接搜索筛选。
+
+另外有 4 份不走网页、改用 **Blender** 程序化建模的同题作品（mcp-for-blender 插件 / blender-bridge-agent），
+它们的 `.blend`、生成脚本与渲染图也一并放在仓库里，用「载体」筛选可以和 three.js 那批分开看。
 
 ---
 
@@ -24,7 +28,7 @@
 ```
 .
 ├── index.html          # 画廊：搜索 / 按平台·模型·强度筛选
-├── data.json           # 25 个工程的结构化元数据
+├── data.json           # 29 条结构化元数据（25 个 three.js + 4 个 Blender）
 ├── projects/           # 原始工程（源码、说明、截图、构建脚本）
 │   └── <工程名>/
 ├── live/               # 可直接打开的静态版本（GitHub Pages 用这一份）
@@ -50,6 +54,7 @@
 | `trae` | Trae Code | 字节的 AI IDE |
 | `arena` | Arena · Kibitz | 竞技场里的匿名模型（疑似 Kimi K3.1） |
 | 无前缀 | v0.app | Vercel 的生成式 UI 平台 |
+| `bl-` | Blender | 走 Blender 程序化建模的那 4 份（不走网页） |
 
 后缀表示思考强度：`-high` / `-xhigh` / `-max`，**没有后缀就是默认档**。
 `1017` 指 DeepSeek V4.1 Flash 的 1017 版本号。
@@ -59,7 +64,7 @@
 
 ---
 
-## 全部工程
+## three.js 部分（25）
 
 | # | 目录 | 平台 | 模型 | 强度 | 作品 | 技术栈 | 预览 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -91,15 +96,39 @@
 
 ---
 
+## Blender 部分（4）
+
+同一句提示词，但走的是 Blender 里的程序化建模，不是网页。四个目录的区别在「版本 × 客户端 × 强度」：
+
+| # | 目录 | 版本 | 客户端 | 强度 | 作品 | 场景文件 | 渲染图 | 预览 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | [`bl-mcp-cn-max`](projects/bl-mcp-cn-max) | 国内版 | mcp-for-blender | max | 浮空城堡 · MCP 程序化 | 未命名.blend | 17 张 | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/bl-mcp-cn-max/) |
+| 2 | [`bl-mcp-intl-max`](projects/bl-mcp-intl-max) | 国际版 | mcp-for-blender | max | 浮空城堡 · 国际版 max | 浮空城堡_小王子.blend | 40 张 | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/bl-mcp-intl-max/) |
+| 3 | [`bl-mcp-intl-high`](projects/bl-mcp-intl-high) | 国际版 | mcp-for-blender | high | 浮空城堡 · 国际版 high | 浮空城堡_小王子.blend | 9 张 | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/bl-mcp-intl-high/) |
+| 4 | [`bl-agent-cn-max`](projects/bl-agent-cn-max) | 国内版 | blender-bridge-agent | max | 浮空城堡 · Bridge Agent | 浮空城堡_小王子.blend | 6 张 | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/bl-agent-cn-max/) |
+
+> `bl-` 前缀表示 Blender。国内版指 WorkBuddy 国内客户端，国际版指 WorkBuddy 国际版；
+> 客户端一栏是实际驱动 Blender 的方式——`mcp-for-blender` 走 MCP 工具下发 bpy 代码，
+> `blender-bridge-agent` 走 Blender Agent Bridge 插件。
+> 这四份的**模型与思考档对应关系来自你的口述**（国内 MCP = max、国际 MCP = max / high、国内 Bridge = max），
+> 模型名没有记录在工程里，所以表格里只标平台不标具体模型。
+
+渲染图不是本仓库截的，是各工程自己用 EEVEE 出图后直接收进 `projects/<目录>/renders/`；
+预览页（`live/<目录>/`）只做了个瀑布流浏览 + 下载 `.blend`，没有重渲染。
+
+---
+
 ## 统计
 
-**按平台**：v0.app 11 · WorkBuddy 6 · opencode 4 · ModelScope 魔搭 2 · Trae Code 1 · Arena · Kibitz 1
+**按平台**：v0.app 11 · WorkBuddy 10 · opencode 4 · ModelScope 魔搭 2 · Trae Code 1 · Arena · Kibitz 1
 
-**按模型**：DeepSeek 6 · GPT 4 · Claude 4 · Kimi 2 · Qwen 2 · Gemini 1 · Fable 1 · GLM 1 · Hunyuan 1 · MiniMax 1 · MiMo 1 · Step 1
+**按模型**：DeepSeek 6 · GPT 4 · Claude 4 · WorkBuddy 4 · Kimi 2 · Qwen 2 · Gemini 1 · Fable 1 · GLM 1 · Hunyuan 1 · MiniMax 1 · MiMo 1 · Step 1
 
-**按强度**：max 11 · xhigh 4 · high 8 · 默认 2
+**按强度**：max 14 · xhigh 4 · high 9 · 默认 2
 
-**工程源码合计**：61 MB / 489 个文件
+**按载体**：three.js 25 · Blender 4
+
+**工程源码合计**：162 MB / 636 个文件
 
 ---
 
@@ -112,6 +141,9 @@
 | 静态 HTML / 原生 ES Module | 15 | 丢进任意静态服务器即可（`live/` 里已经是可直接跑的版本） |
 | Vite + React | 1 | `npm i && npm run build`（`vite-plugin-singlefile` 打成单文件） |
 | Next.js + React Three Fiber | 9 | `npm i && npm run build`，其中 4 个还额外带了作者自己打的 standalone 产物 |
+
+另有 **4 份 Blender 工程**不属于上面任何一类：它们不需要构建，交付物就是 `.blend` + 渲染图 +
+（部分）生成脚本，直接下载就能在 Blender 5.1 里打开。
 
 几个具体发现：
 
@@ -165,4 +197,4 @@ python -m http.server 8080
 
 ---
 
-<sub>Generated 2026-10-24 · 25 件作品 · 61 MB 源码</sub>
+<sub>Generated 2026-10-24 · 29 件作品 · 162 MB 源码</sub>

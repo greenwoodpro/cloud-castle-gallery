@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>浮空城堡 · MCP 程序化 · Blender 渲染</title>
+<style>
+:root{--paper:#faf6ee;--ink:#312b26;--ink2:#5d5348;--ink3:#8b7f70;--line:#e0d5c2;--gold:#b8893f}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+background-image:radial-gradient(1100px 520px at 10% -6%,rgba(214,183,143,.2),transparent 60%)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+header{padding:26px 0 0;font-size:13px;color:var(--ink3)}
+header a{color:var(--ink3);text-decoration:none}header a:hover{color:var(--gold)}
+h1{font-family:"Noto Serif SC",Georgia,serif;font-size:38px;margin:18px 0 6px;font-weight:600}
+.sub{color:var(--ink2);margin:0 0 18px}
+table{border-collapse:collapse;font-size:13.5px;margin:0 0 20px}
+td{padding:4px 14px 4px 0;color:var(--ink2);vertical-align:top}
+td:first-child{color:var(--ink3);white-space:nowrap}
+.note{background:#fffdf8;border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:13.5px;color:var(--ink2);max-width:760px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 30px}
+.btn{font-size:13px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);color:var(--ink2);text-decoration:none;background:#fffdf8}
+.btn:hover{border-color:var(--gold);color:var(--ink)}
+.btn.p{background:var(--ink);border-color:var(--ink);color:#faf6ee}
+h2{font-family:"Noto Serif SC",Georgia,serif;font-size:19px;margin:34px 0 14px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px;padding-bottom:60px}
+.shot{margin:0;background:#fffdf8;border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 8px 20px -16px rgba(70,50,20,.5)}
+.shot img{width:100%;display:block;aspect-ratio:16/10;object-fit:cover}
+.shot figcaption{padding:7px 11px;font-size:12px;color:var(--ink3);border-top:1px solid var(--line)}
+</style></head><body><div class="wrap">
+<header><a href="../../">← 云端城堡</a> / Blender</header>
+<h1>浮空城堡 · MCP 程序化</h1>
+<p class="sub">国内版 · mcp-for-blender · max</p>
+<table>
+<tr><td>工程目录</td><td>projects/bl-mcp-cn-max/</td></tr>
+<tr><td>Blender 文件</td><td>未命名.blend（3.4 MB）</td></tr>
+<tr><td>生成脚本</td><td>castle/ 下 7 个 .py（build / cas_island / cas_castle / cas_interior / cas_folks / cas_env / cas_lib）</td></tr>
+<tr><td>渲染图</td><td>17 张 · castle/render/</td></tr>
+</table>
+<div class="note">国内版 WorkBuddy 走 mcp-for-blender 插件，在已打开的 Blender 里逐条下发 bpy 代码生成。castle/ 是完整生成脚本，render/ 里 3 张定稿 + 14 张过程预览。</div>
+<div class="btns">
+<a class="btn p" href="../../projects/bl-mcp-cn-max/%E6%9C%AA%E5%91%BD%E5%90%8D.blend" download>下载 未命名.blend</a>
+<a class="btn" href="https://github.com/greenwoodpro/cloud-castle-gallery/tree/main/projects/bl-mcp-cn-max" target="_blank" rel="noopener">在 GitHub 看源码</a>
+</div>
+<h2>渲染图（17）</h2>
+<div class="grid">
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/01_floating_castle.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/01_floating_castle.png" alt="01_floating_castle">
+        </a>
+        <figcaption>01_floating_castle</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/02_gatehouse.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/02_gatehouse.png" alt="02_gatehouse">
+        </a>
+        <figcaption>02_gatehouse</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/03_great_hall.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/03_great_hall.png" alt="03_great_hall">
+        </a>
+        <figcaption>03_great_hall</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview01.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview01.png" alt="preview01">
+        </a>
+        <figcaption>preview01</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview02.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview02.png" alt="preview02">
+        </a>
+        <figcaption>preview02</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview03.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview03.png" alt="preview03">
+        </a>
+        <figcaption>preview03</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview04.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview04.png" alt="preview04">
+        </a>
+        <figcaption>preview04</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview05.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview05.png" alt="preview05">
+        </a>
+        <figcaption>preview05</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview06.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview06.png" alt="preview06">
+        </a>
+        <figcaption>preview06</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview07.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview07.png" alt="preview07">
+        </a>
+        <figcaption>preview07</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview08.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview08.png" alt="preview08">
+        </a>
+        <figcaption>preview08</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview09.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview09.png" alt="preview09">
+        </a>
+        <figcaption>preview09</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview10.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview10.png" alt="preview10">
+        </a>
+        <figcaption>preview10</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview11.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview11.png" alt="preview11">
+        </a>
+        <figcaption>preview11</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview12.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview12.png" alt="preview12">
+        </a>
+        <figcaption>preview12</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview13.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview13.png" alt="preview13">
+        </a>
+        <figcaption>preview13</figcaption>
+      </figure>
+      <figure class="shot">
+        <a href="../../projects/bl-mcp-cn-max/castle/render/preview14.png" target="_blank" rel="noopener">
+          <img loading="lazy" src="../../projects/bl-mcp-cn-max/castle/render/preview14.png" alt="preview14">
+        </a>
+        <figcaption>preview14</figcaption>
+      </figure>
+</div></div></body></html>

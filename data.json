@@ -21,7 +21,8 @@
   "srcFiles": 39,
   "srcKB": 4496,
   "liveKB": 6756,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "astra-xhigh",
@@ -46,7 +47,8 @@
   "srcFiles": 35,
   "srcKB": 1123,
   "liveKB": 1123,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "argon-high",
@@ -70,7 +72,8 @@
   "srcFiles": 12,
   "srcKB": 199,
   "liveKB": 234,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "fable5.1-max",
@@ -94,7 +97,8 @@
   "srcFiles": 33,
   "srcKB": 104,
   "liveKB": 12359,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "gpt6.1sol-max",
@@ -118,7 +122,8 @@
   "srcFiles": 40,
   "srcKB": 16750,
   "liveKB": 18322,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "gpt6.1sol-xhigh",
@@ -142,7 +147,8 @@
   "srcFiles": 32,
   "srcKB": 5049,
   "liveKB": 9720,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "kimik3-max",
@@ -166,7 +172,8 @@
   "srcFiles": 24,
   "srcKB": 226,
   "liveKB": 12500,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "opus5.5-max",
@@ -190,7 +197,8 @@
   "srcFiles": 45,
   "srcKB": 1072,
   "liveKB": 1076,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "opus5.5-xhigh",
@@ -214,7 +222,8 @@
   "srcFiles": 38,
   "srcKB": 289,
   "liveKB": 9984,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "opus5.5-high",
@@ -238,7 +247,8 @@
   "srcFiles": 15,
   "srcKB": 379,
   "liveKB": 379,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "sonnet5.5-max",
@@ -263,7 +273,8 @@
   "srcFiles": 19,
   "srcKB": 817,
   "liveKB": 817,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "modelds1017-high",
@@ -286,7 +297,8 @@
   "srcFiles": 31,
   "srcKB": 1572,
   "liveKB": 1553,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "modelqwen3.8flash-high",
@@ -310,7 +322,8 @@
   "srcFiles": 3,
   "srcKB": 528,
   "liveKB": 54,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "ocdsv4.1-high",
@@ -334,7 +347,8 @@
   "srcFiles": 15,
   "srcKB": 457,
   "liveKB": 451,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "ocdsv4.1f-max",
@@ -358,7 +372,8 @@
   "srcFiles": 1,
   "srcKB": 84,
   "liveKB": 168,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "ocds1017-high",
@@ -381,7 +396,8 @@
   "srcFiles": 19,
   "srcKB": 3467,
   "liveKB": 2163,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "ocds1017-max",
@@ -405,7 +421,8 @@
   "srcFiles": 17,
   "srcKB": 861,
   "liveKB": 858,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "traeqwen3.8f-xhigh",
@@ -429,7 +446,8 @@
   "srcFiles": 1,
   "srcKB": 32,
   "liveKB": 63,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "wbds1017-xhigh",
@@ -453,7 +471,8 @@
   "srcFiles": 5,
   "srcKB": 6383,
   "liveKB": 1350,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "wbglm5.3flash-xhigh",
@@ -477,7 +496,8 @@
   "srcFiles": 5,
   "srcKB": 1672,
   "liveKB": 2188,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "wbhy4preview-high",
@@ -501,7 +521,8 @@
   "srcFiles": 2,
   "srcKB": 1379,
   "liveKB": 1379,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "wbminimaxm3.1flash-max",
@@ -524,7 +545,8 @@
   "srcFiles": 19,
   "srcKB": 1419,
   "liveKB": 1406,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "wbmimo2.6fp",
@@ -548,7 +570,8 @@
   "srcFiles": 7,
   "srcKB": 3798,
   "liveKB": 792,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "wbstep5preview-high",
@@ -572,7 +595,8 @@
   "srcFiles": 15,
   "srcKB": 10227,
   "liveKB": 1368,
-  "shot": true
+  "shot": true,
+  "kind": "three"
  },
  {
   "id": "arenakibitz",
@@ -596,6 +620,115 @@
   "srcFiles": 17,
   "srcKB": 272,
   "liveKB": 907,
+  "shot": true,
+  "kind": "three"
+ },
+ {
+  "id": "bl-mcp-cn-max",
+  "title": "浮空城堡 · MCP 程序化",
+  "kind": "blender",
+  "provider": "wb",
+  "providerLabel": "WorkBuddy",
+  "model": "WorkBuddy（Blender）",
+  "family": "WorkBuddy",
+  "effort": "max",
+  "effortNote": "",
+  "edition": "国内版",
+  "client": "mcp-for-blender",
+  "stack": "Blender 5.1.1 · EEVEE",
+  "tags": [
+   "MCP",
+   ".blend",
+   "程序化生成",
+   "过程预览 14 张"
+  ],
+  "note": "国内版 WorkBuddy 走 mcp-for-blender 插件，在已打开的 Blender 里逐条下发 bpy 代码生成。castle/ 是完整生成脚本，render/ 里 3 张定稿 + 14 张过程预览。",
+  "renders": 17,
+  "blend": "未命名.blend",
+  "hero": "castle/render/03_great_hall.png",
+  "srcFiles": 25,
+  "srcKB": 24795,
+  "shot": true
+ },
+ {
+  "id": "bl-mcp-intl-max",
+  "title": "浮空城堡 · 国际版 max",
+  "kind": "blender",
+  "provider": "wb",
+  "providerLabel": "WorkBuddy",
+  "model": "WorkBuddy（Blender）",
+  "family": "WorkBuddy",
+  "effort": "max",
+  "effortNote": "",
+  "edition": "国际版",
+  "client": "mcp-for-blender",
+  "stack": "Blender 5.1.1 · EEVEE",
+  "tags": [
+   "MCP",
+   ".blend",
+   "分步脚本 25 个",
+   "多机位"
+  ],
+  "note": "国际版 max 档。脚本按「场景 / 岛 / 城墙 / 主堡 / 室内 / 礼拜堂 / 庭院 / 自然 / 人物」分十步，另有 11 个 w* 迭代脚本记录调光与水体调试过程；渲染图含多个机位与剖面对照。",
+  "renders": 40,
+  "blend": "浮空城堡_小王子.blend",
+  "hero": "renders/CAM_01_全景.png",
+  "srcFiles": 90,
+  "srcKB": 40552,
+  "shot": true
+ },
+ {
+  "id": "bl-mcp-intl-high",
+  "title": "浮空城堡 · 国际版 high",
+  "kind": "blender",
+  "provider": "wb",
+  "providerLabel": "WorkBuddy",
+  "model": "WorkBuddy（Blender）",
+  "family": "WorkBuddy",
+  "effort": "high",
+  "effortNote": "",
+  "edition": "国际版",
+  "client": "mcp-for-blender",
+  "stack": "Blender 5.1.1 · EEVEE",
+  "tags": [
+   "MCP",
+   ".blend",
+   "1301 对象",
+   "23.2 万面",
+   "设计说明"
+  ],
+  "note": "国际版 high 档。1301 个对象 / 23.2 万三角面 / 74 个全程序化材质 / 9 台相机 + 一个 240 帧环绕转台；附《浮空城堡_设计说明》逐段讲岛体、城堡、室内、人物。",
+  "renders": 9,
+  "blend": "浮空城堡_小王子.blend",
+  "hero": "renders/01_全景.png",
+  "srcFiles": 24,
+  "srcKB": 20952,
+  "shot": true
+ },
+ {
+  "id": "bl-agent-cn-max",
+  "title": "浮空城堡 · Bridge Agent",
+  "kind": "blender",
+  "provider": "wb",
+  "providerLabel": "WorkBuddy",
+  "model": "WorkBuddy（Blender）",
+  "family": "WorkBuddy",
+  "effort": "max",
+  "effortNote": "",
+  "edition": "国内版",
+  "client": "blender-bridge-agent",
+  "stack": "Blender 5.1.1 · EEVEE",
+  "tags": [
+   "Bridge Agent",
+   ".blend",
+   "无生成脚本"
+  ],
+  "note": "国内版走 blender-bridge-agent（Blender Agent Bridge 插件）。只交出成品 .blend + 六张定稿渲染 + 设计说明，没有中间脚本——这是它和 MCP 那三份最大的区别。",
+  "renders": 6,
+  "blend": "浮空城堡_小王子.blend",
+  "hero": "renders/01_全景.png",
+  "srcFiles": 8,
+  "srcKB": 16498,
   "shot": true
  }
 ]
