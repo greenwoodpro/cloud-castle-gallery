@@ -164,10 +164,13 @@ loader.load('model.glb', (gltf) => {
   pts.forEach((v) => center.add(v))
   center.divideScalar(Math.max(1, pts.length))
   const dists = pts.map((v) => v.distanceTo(center)).sort((a, b) => a - b)
-  const radius = Math.max(4, dists[Math.floor(dists.length * 0.965)] || 10)
+  const median = dists[Math.floor(dists.length * 0.5)] || 1
+  // 剔掉太阳、远云这类离群点再取半径，否则取景会被拉飞
+  const kept = dists.filter((d) => d < median * 3.2)
+  const radius = Math.max(4, kept[Math.floor(kept.length * 0.985)] || dists[dists.length - 1] || 10)
 
   model.position.sub(center)
-  const dist = radius * 2.5
+  const dist = radius * 2.85
   camera.position.set(dist * 0.66, radius * 0.62, dist * 0.86)
   camera.near = radius / 60
   camera.far = radius * 60
@@ -189,8 +192,8 @@ loader.load('model.glb', (gltf) => {
   document.getElementById('loading').classList.add('done')
 }, (e) => {
   if (e.total) {
-    document.getElementById('loading').textContent =
-      `正在载入模型… ${Math.round(e.loaded / e.total * 100)}%`
+    const pct = Math.min(99, Math.round(e.loaded / (e.total || e.loaded) * 100))
+    document.getElementById('loading').textContent = `正在载入模型… ${pct}%`
   }
 }, (err) => {
   document.getElementById('loading').textContent = '模型加载失败：' + err
