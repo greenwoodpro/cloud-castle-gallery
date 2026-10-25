@@ -642,13 +642,18 @@
    "程序化生成",
    "过程预览 14 张"
   ],
-  "note": "国内版 WorkBuddy 走 mcp-for-blender 插件，在已打开的 Blender 里逐条下发 bpy 代码生成。castle/ 是完整生成脚本，render/ 里 3 张定稿 + 14 张过程预览。",
+  "note": "国内版 WorkBuddy 走 mcp-for-blender 插件，在已打开的 Blender 里逐条下发 bpy 代码生成。castle/ 是完整生成脚本，render/ 里 3 张定稿 + 14 张过程预览。 另附一份可交互 GLB（Draco 压缩，浏览器里直接转）。",
   "renders": 17,
   "blend": "未命名.blend",
   "hero": "castle/render/03_great_hall.png",
   "srcFiles": 25,
   "srcKB": 24795,
-  "shot": true
+  "shot": true,
+  "model3d": {
+   "nodes": 46,
+   "tris": 185583,
+   "mb": 0.8
+  }
  },
  {
   "id": "bl-mcp-intl-max",
@@ -669,13 +674,18 @@
    "分步脚本 25 个",
    "多机位"
   ],
-  "note": "国际版 max 档。脚本按「场景 / 岛 / 城墙 / 主堡 / 室内 / 礼拜堂 / 庭院 / 自然 / 人物」分十步，另有 11 个 w* 迭代脚本记录调光与水体调试过程；渲染图含多个机位与剖面对照。",
+  "note": "国际版 max 档。脚本按「场景 / 岛 / 城墙 / 主堡 / 室内 / 礼拜堂 / 庭院 / 自然 / 人物」分十步，另有 11 个 w* 迭代脚本记录调光与水体调试过程；渲染图含多个机位与剖面对照。 另附一份可交互 GLB（Draco 压缩，浏览器里直接转）。",
   "renders": 40,
   "blend": "浮空城堡_小王子.blend",
   "hero": "renders/CAM_01_全景.png",
   "srcFiles": 90,
   "srcKB": 40552,
-  "shot": true
+  "shot": true,
+  "model3d": {
+   "nodes": 13277,
+   "tris": 750734,
+   "mb": 10.2
+  }
  },
  {
   "id": "bl-mcp-intl-high",
@@ -697,13 +707,18 @@
    "23.2 万面",
    "设计说明"
   ],
-  "note": "国际版 high 档。1301 个对象 / 23.2 万三角面 / 74 个全程序化材质 / 9 台相机 + 一个 240 帧环绕转台；附《浮空城堡_设计说明》逐段讲岛体、城堡、室内、人物。",
+  "note": "国际版 high 档。1301 个对象 / 23.2 万三角面 / 74 个全程序化材质 / 9 台相机 + 一个 240 帧环绕转台；附《浮空城堡_设计说明》逐段讲岛体、城堡、室内、人物。 另附一份可交互 GLB（Draco 压缩，浏览器里直接转）。",
   "renders": 9,
   "blend": "浮空城堡_小王子.blend",
   "hero": "renders/01_全景.png",
   "srcFiles": 24,
   "srcKB": 20952,
-  "shot": true
+  "shot": true,
+  "model3d": {
+   "nodes": 1278,
+   "tris": 208084,
+   "mb": 2
+  }
  },
  {
   "id": "bl-agent-cn-max",
@@ -723,12 +738,17 @@
    ".blend",
    "无生成脚本"
   ],
-  "note": "国内版走 blender-bridge-agent（Blender Agent Bridge 插件）。只交出成品 .blend + 六张定稿渲染 + 设计说明，没有中间脚本——这是它和 MCP 那三份最大的区别。",
+  "note": "国内版走 blender-bridge-agent（Blender Agent Bridge 插件）。只交出成品 .blend + 六张定稿渲染 + 设计说明，没有中间脚本——这是它和 MCP 那三份最大的区别。 另附一份可交互 GLB（Draco 压缩，浏览器里直接转）。",
   "renders": 6,
   "blend": "浮空城堡_小王子.blend",
   "hero": "renders/01_全景.png",
   "srcFiles": 8,
   "srcKB": 16498,
-  "shot": true
+  "shot": true,
+  "model3d": {
+   "nodes": 1300,
+   "tris": 361324,
+   "mb": 2.8
+  }
  }
 ]

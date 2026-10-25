@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>浮空城堡 · Bridge Agent · 3D 模型</title>
+<style>
+  :root{--paper:#faf6ee;--ink:#312b26;--ink2:#5d5348;--ink3:#8b7f70;--line:#e0d5c2;--gold:#b8893f}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#eef1f2;color:var(--ink);
+    font:14px/1.6 "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}
+  #stage{position:fixed;inset:0}
+  canvas{display:block}
+  .panel{position:fixed;left:22px;top:22px;background:rgba(255,253,248,.92);backdrop-filter:blur(8px);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;max-width:330px;
+    box-shadow:0 12px 30px -18px rgba(40,30,15,.6)}
+  .panel .back{font-size:12px;color:var(--ink3);text-decoration:none}
+  .panel .back:hover{color:var(--gold)}
+  h1{font-family:"Noto Serif SC",Georgia,serif;font-size:20px;margin:6px 0 4px;font-weight:600}
+  .meta{font-size:12px;color:var(--ink3);margin:0 0 10px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{font-size:12px;padding:6px 11px;border-radius:7px;border:1px solid var(--line);background:#fffdf8;
+    color:var(--ink2);text-decoration:none;cursor:pointer;font-family:inherit}
+  .btn:hover{border-color:var(--gold);color:var(--ink)}
+  .btn.on{background:var(--ink);border-color:var(--ink);color:#faf6ee}
+  .hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:12px;color:#6b6257;
+    background:rgba(255,253,248,.82);border:1px solid var(--line);border-radius:999px;padding:6px 16px;
+    backdrop-filter:blur(6px);white-space:nowrap}
+  .stats{position:fixed;right:22px;top:22px;font-size:11.5px;color:#6b6257;text-align:right;
+    background:rgba(255,253,248,.82);border:1px solid var(--line);border-radius:10px;padding:8px 12px;
+    backdrop-filter:blur(6px);line-height:1.7}
+  #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:#eef1f2;font-size:13px;color:#6b6257;transition:opacity .5s;z-index:9}
+  #loading.done{opacity:0;pointer-events:none}
+  @media (max-width:640px){.panel{left:12px;right:12px;top:12px;max-width:none}.stats{display:none}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="loading">正在载入模型…</div>
+
+<div class="panel">
+  <a class="back" href="../../">← 云端城堡</a>
+  <h1>浮空城堡 · Bridge Agent</h1>
+  <p class="meta">国内版 · blender-bridge-agent · max</p>
+  <div class="row">
+    <button class="btn on" id="spin">自动旋转</button>
+    <button class="btn" id="wire">线框</button>
+    <a class="btn" href="model.glb" download>下载 .glb</a>
+  </div>
+</div>
+<div class="stats" id="stats"></div>
+<div class="hint">拖拽旋转 · 滚轮缩放 · 右键平移</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+const stage = document.getElementById('stage')
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+renderer.setSize(innerWidth, innerHeight)
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.toneMapping = THREE.NeutralToneMapping || THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 0.98
+stage.appendChild(renderer.domElement)
+
+const scene = new THREE.Scene()
+const sky = new THREE.Color('#dfe8ea')
+scene.fog = new THREE.Fog(sky, 220, 620)
+window.__DEBUG = (m) => { window.__M = m; }
+
+const pmrem = new THREE.PMREMGenerator(renderer)
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+
+const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.5, 2000)
+camera.position.set(58, 38, 74)
+
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.enableDamping = true
+controls.dampingFactor = 0.06
+controls.autoRotate = true
+controls.autoRotateSpeed = 0.55
+controls.maxPolarAngle = Math.PI * 0.495
+controls.minDistance = 12
+
+// 渐变天穹（模型自带的天穹导出时已剔除）
+const skyUniforms = {
+  uTop: { value: new THREE.Color('#9dbdd2') },
+  uBottom: { value: new THREE.Color('#fbeed6') },
+}
+const skyDome = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 32, 20),
+  new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false, fog: false,
+    uniforms: skyUniforms,
+    vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    fragmentShader: `uniform vec3 uTop; uniform vec3 uBottom; varying vec3 vP;
+      void main(){ float h = clamp(vP.y * 0.5 + 0.5, 0.0, 1.0); gl_FragColor = vec4(mix(uBottom, uTop, pow(h, 0.85)), 1.0); }`,
+  })
+)
+skyDome.scale.setScalar(4000)
+scene.add(skyDome)
+
+// 光：半球 + 主光（唯一投影）
+scene.add(new THREE.HemisphereLight('#fdf6e8', '#8e9c94', 0.30))
+const sun = new THREE.DirectionalLight('#fff2da', 1.15)
+sun.position.set(86, 58, 66)
+sun.castShadow = true
+sun.shadow.mapSize.set(2048, 2048)
+const sc = sun.shadow.camera
+sc.left = -90; sc.right = 90; sc.top = 90; sc.bottom = -90; sc.near = 1; sc.far = 320
+sun.shadow.bias = -0.0006
+sun.shadow.normalBias = 0.6
+scene.add(sun)
+scene.add(new THREE.DirectionalLight('#dfe8ff', 0.18).translateX(-70).translateY(20).translateZ(-60))
+
+
+const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/libs/draco/')
+const loader = new GLTFLoader().setDRACOLoader(draco)
+
+let model = null
+let wire = false
+
+loader.load('model.glb', (gltf) => {
+  model = gltf.scene
+  model.traverse((o) => {
+    if (o.isMesh) {
+      o.castShadow = true
+      o.receiveShadow = true
+      if (o.material) {
+        o.material.envMapIntensity = 0.35
+      }
+    }
+  })
+  scene.add(model)
+  window.__M = model; window.__S = scene; window.__C = camera;
+
+  const box = new THREE.Box3().setFromObject(model)
+  const size = box.getSize(new THREE.Vector3())
+  const center = box.getCenter(new THREE.Vector3())
+  const radius = Math.max(size.x, size.y, size.z) * 0.5
+  model.position.sub(center)                 // 几何中心落在原点
+
+  const dist = radius * 2.35
+  camera.position.set(dist * 0.66, radius * 0.62, dist * 0.86)
+  camera.near = radius / 60
+  camera.far = radius * 60
+  camera.updateProjectionMatrix()
+  controls.target.set(0, 0, 0)
+  controls.minDistance = radius * 0.9
+  controls.maxDistance = radius * 8
+  skyDome.scale.setScalar(radius * 12)
+  scene.fog.color.set('#e9eef0')
+  scene.fog.near = radius * 6
+  scene.fog.far = radius * 18
+  controls.update()
+
+  let tris = 0
+  model.traverse(o => { if (o.isMesh && o.geometry) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3 })
+  document.getElementById('stats').innerHTML =
+    `${1301} 个对象 · ${Math.round(tris / 1000)}k 三角面<br>GLB · ${2.8} MB`
+
+  document.getElementById('loading').classList.add('done')
+}, (e) => {
+  if (e.total) {
+    document.getElementById('loading').textContent =
+      `正在载入模型… ${Math.round(e.loaded / e.total * 100)}%`
+  }
+}, (err) => {
+  document.getElementById('loading').textContent = '模型加载失败：' + err
+})
+
+document.getElementById('spin').onclick = (e) => {
+  controls.autoRotate = !controls.autoRotate
+  e.currentTarget.classList.toggle('on', controls.autoRotate)
+}
+document.getElementById('wire').onclick = (e) => {
+  wire = !wire
+  model && model.traverse(o => { if (o.isMesh && o.material) o.material.wireframe = wire })
+  e.currentTarget.classList.toggle('on', wire)
+}
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight
+  camera.updateProjectionMatrix()
+  renderer.setSize(innerWidth, innerHeight)
+})
+;(function loop() {
+  requestAnimationFrame(loop)
+  controls.update()
+  renderer.render(scene, camera)
+})()
+</script>
+</body>
+</html>

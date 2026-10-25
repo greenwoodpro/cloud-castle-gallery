@@ -1,283 +1,220 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>浮空城堡 · 国际版 max · Blender 渲染</title>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>浮空城堡 · 国际版 max · 3D 模型</title>
 <style>
-:root{--paper:#faf6ee;--ink:#312b26;--ink2:#5d5348;--ink3:#8b7f70;--line:#e0d5c2;--gold:#b8893f}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
-background-image:radial-gradient(1100px 520px at 10% -6%,rgba(214,183,143,.2),transparent 60%)}
-.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
-header{padding:26px 0 0;font-size:13px;color:var(--ink3)}
-header a{color:var(--ink3);text-decoration:none}header a:hover{color:var(--gold)}
-h1{font-family:"Noto Serif SC",Georgia,serif;font-size:38px;margin:18px 0 6px;font-weight:600}
-.sub{color:var(--ink2);margin:0 0 18px}
-table{border-collapse:collapse;font-size:13.5px;margin:0 0 20px}
-td{padding:4px 14px 4px 0;color:var(--ink2);vertical-align:top}
-td:first-child{color:var(--ink3);white-space:nowrap}
-.note{background:#fffdf8;border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:13.5px;color:var(--ink2);max-width:760px}
-.btns{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 30px}
-.btn{font-size:13px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);color:var(--ink2);text-decoration:none;background:#fffdf8}
-.btn:hover{border-color:var(--gold);color:var(--ink)}
-.btn.p{background:var(--ink);border-color:var(--ink);color:#faf6ee}
-h2{font-family:"Noto Serif SC",Georgia,serif;font-size:19px;margin:34px 0 14px;font-weight:600}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px;padding-bottom:60px}
-.shot{margin:0;background:#fffdf8;border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 8px 20px -16px rgba(70,50,20,.5)}
-.shot img{width:100%;display:block;aspect-ratio:16/10;object-fit:cover}
-.shot figcaption{padding:7px 11px;font-size:12px;color:var(--ink3);border-top:1px solid var(--line)}
-</style></head><body><div class="wrap">
-<header><a href="../../">← 云端城堡</a> / Blender</header>
-<h1>浮空城堡 · 国际版 max</h1>
-<p class="sub">国际版 · mcp-for-blender · max</p>
-<table>
-<tr><td>工程目录</td><td>projects/bl-mcp-intl-max/</td></tr>
-<tr><td>Blender 文件</td><td>浮空城堡_小王子.blend（3.0 MB）</td></tr>
-<tr><td>生成脚本</td><td>bl/ 下 25 个分段脚本（s1 场景 → s10 定稿 + w1–w11 迭代）</td></tr>
-<tr><td>渲染图</td><td>40 张 · renders/</td></tr>
-</table>
-<div class="note">国际版 max 档。脚本按「场景 / 岛 / 城墙 / 主堡 / 室内 / 礼拜堂 / 庭院 / 自然 / 人物」分十步，另有 11 个 w* 迭代脚本记录调光与水体调试过程；渲染图含多个机位与剖面对照。</div>
-<div class="btns">
-<a class="btn p" href="../../projects/bl-mcp-intl-max/%E6%B5%AE%E7%A9%BA%E5%9F%8E%E5%A0%A1_%E5%B0%8F%E7%8E%8B%E5%AD%90.blend" download>下载 浮空城堡_小王子.blend</a>
-<a class="btn" href="https://github.com/greenwoodpro/cloud-castle-gallery/tree/main/projects/bl-mcp-intl-max" target="_blank" rel="noopener">在 GitHub 看源码</a>
+  :root{--paper:#faf6ee;--ink:#312b26;--ink2:#5d5348;--ink3:#8b7f70;--line:#e0d5c2;--gold:#b8893f}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#eef1f2;color:var(--ink);
+    font:14px/1.6 "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}
+  #stage{position:fixed;inset:0}
+  canvas{display:block}
+  .panel{position:fixed;left:22px;top:22px;background:rgba(255,253,248,.92);backdrop-filter:blur(8px);
+    border:1px solid var(--line);border-radius:12px;padding:14px 16px;max-width:330px;
+    box-shadow:0 12px 30px -18px rgba(40,30,15,.6)}
+  .panel .back{font-size:12px;color:var(--ink3);text-decoration:none}
+  .panel .back:hover{color:var(--gold)}
+  h1{font-family:"Noto Serif SC",Georgia,serif;font-size:20px;margin:6px 0 4px;font-weight:600}
+  .meta{font-size:12px;color:var(--ink3);margin:0 0 10px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{font-size:12px;padding:6px 11px;border-radius:7px;border:1px solid var(--line);background:#fffdf8;
+    color:var(--ink2);text-decoration:none;cursor:pointer;font-family:inherit}
+  .btn:hover{border-color:var(--gold);color:var(--ink)}
+  .btn.on{background:var(--ink);border-color:var(--ink);color:#faf6ee}
+  .hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:12px;color:#6b6257;
+    background:rgba(255,253,248,.82);border:1px solid var(--line);border-radius:999px;padding:6px 16px;
+    backdrop-filter:blur(6px);white-space:nowrap}
+  .stats{position:fixed;right:22px;top:22px;font-size:11.5px;color:#6b6257;text-align:right;
+    background:rgba(255,253,248,.82);border:1px solid var(--line);border-radius:10px;padding:8px 12px;
+    backdrop-filter:blur(6px);line-height:1.7}
+  #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:#eef1f2;font-size:13px;color:#6b6257;transition:opacity .5s;z-index:9}
+  #loading.done{opacity:0;pointer-events:none}
+  @media (max-width:640px){.panel{left:12px;right:12px;top:12px;max-width:none}.stats{display:none}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="loading">正在载入模型…</div>
+
+<div class="panel">
+  <a class="back" href="../../">← 云端城堡</a>
+  <h1>浮空城堡 · 国际版 max</h1>
+  <p class="meta">国际版 · mcp-for-blender · max</p>
+  <div class="row">
+    <button class="btn on" id="spin">自动旋转</button>
+    <button class="btn" id="wire">线框</button>
+    <a class="btn" href="model.glb" download>下载 .glb</a>
+    <a class="btn" href="renders.html">渲染图 40 张 →</a>
+  </div>
 </div>
-<h2>渲染图（40）</h2>
-<div class="grid">
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_01_%E5%85%A8%E6%99%AF.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_01_%E5%85%A8%E6%99%AF.png" alt="CAM_01_全景">
-        </a>
-        <figcaption>CAM_01_全景</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_02_%E5%9F%8E%E9%97%A8.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_02_%E5%9F%8E%E9%97%A8.png" alt="CAM_02_城门">
-        </a>
-        <figcaption>CAM_02_城门</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_02_%E6%B8%85%E6%99%A8.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_02_%E6%B8%85%E6%99%A8.png" alt="CAM_02_清晨">
-        </a>
-        <figcaption>CAM_02_清晨</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_03_%E5%BA%AD%E9%99%A2.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_03_%E5%BA%AD%E9%99%A2.png" alt="CAM_03_庭院">
-        </a>
-        <figcaption>CAM_03_庭院</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_03_%E9%BB%84%E6%98%8F.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_03_%E9%BB%84%E6%98%8F.png" alt="CAM_03_黄昏">
-        </a>
-        <figcaption>CAM_03_黄昏</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_04_%E4%B8%BB%E5%A0%A1.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_04_%E4%B8%BB%E5%A0%A1.png" alt="CAM_04_主堡">
-        </a>
-        <figcaption>CAM_04_主堡</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_04_%E6%98%9F%E7%A9%BA.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_04_%E6%98%9F%E7%A9%BA.png" alt="CAM_04_星空">
-        </a>
-        <figcaption>CAM_04_星空</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_05_%E5%B0%8F%E7%8E%8B%E5%AD%90.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_05_%E5%B0%8F%E7%8E%8B%E5%AD%90.png" alt="CAM_05_小王子">
-        </a>
-        <figcaption>CAM_05_小王子</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_05_%E8%A7%A3%E5%89%96_a.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_05_%E8%A7%A3%E5%89%96_a.png" alt="CAM_05_解剖_a">
-        </a>
-        <figcaption>CAM_05_解剖_a</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_05_%E8%A7%A3%E5%89%96_b.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_05_%E8%A7%A3%E5%89%96_b.png" alt="CAM_05_解剖_b">
-        </a>
-        <figcaption>CAM_05_解剖_b</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_05_%E8%A7%A3%E5%89%96_c.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_05_%E8%A7%A3%E5%89%96_c.png" alt="CAM_05_解剖_c">
-        </a>
-        <figcaption>CAM_05_解剖_c</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_06_%E8%A5%BF%E4%BE%A7%E7%80%91%E5%B8%83.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_06_%E8%A5%BF%E4%BE%A7%E7%80%91%E5%B8%83.png" alt="CAM_06_西侧瀑布">
-        </a>
-        <figcaption>CAM_06_西侧瀑布</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_07_%E5%A4%A7%E5%8E%85.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_07_%E5%A4%A7%E5%8E%85.png" alt="CAM_07_大厅">
-        </a>
-        <figcaption>CAM_07_大厅</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_08_%E7%A4%BC%E6%8B%9C%E5%A0%82.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_08_%E7%A4%BC%E6%8B%9C%E5%A0%82.png" alt="CAM_08_礼拜堂">
-        </a>
-        <figcaption>CAM_08_礼拜堂</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_10_%E5%8D%A7%E5%AE%A4.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_10_%E5%8D%A7%E5%AE%A4.png" alt="CAM_10_卧室">
-        </a>
-        <figcaption>CAM_10_卧室</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_11_%E5%8E%A8%E6%88%BF.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_11_%E5%8E%A8%E6%88%BF.png" alt="CAM_11_厨房">
-        </a>
-        <figcaption>CAM_11_厨房</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/CAM_14_%E5%89%96%E9%9D%A2.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/CAM_14_%E5%89%96%E9%9D%A2.png" alt="CAM_14_剖面">
-        </a>
-        <figcaption>CAM_14_剖面</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/ab_agx45.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/ab_agx45.png" alt="ab_agx45">
-        </a>
-        <figcaption>ab_agx45</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/ab_p06.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/ab_p06.png" alt="ab_p06">
-        </a>
-        <figcaption>ab_p06</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/ab_p085.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/ab_p085.png" alt="ab_p085">
-        </a>
-        <figcaption>ab_p085</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/ab_punchy.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/ab_punchy.png" alt="ab_punchy">
-        </a>
-        <figcaption>ab_punchy</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/ab_std.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/ab_std.png" alt="ab_std">
-        </a>
-        <figcaption>ab_std</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/cut_a.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/cut_a.png" alt="cut_a">
-        </a>
-        <figcaption>cut_a</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/cut_b.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/cut_b.png" alt="cut_b">
-        </a>
-        <figcaption>cut_b</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/cut_c.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/cut_c.png" alt="cut_c">
-        </a>
-        <figcaption>cut_c</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/cut_test.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/cut_test.png" alt="cut_test">
-        </a>
-        <figcaption>cut_test</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/dawn_test.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/dawn_test.png" alt="dawn_test">
-        </a>
-        <figcaption>dawn_test</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/dbg_nocloud.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/dbg_nocloud.png" alt="dbg_nocloud">
-        </a>
-        <figcaption>dbg_nocloud</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/dusk_test.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/dusk_test.png" alt="dusk_test">
-        </a>
-        <figcaption>dusk_test</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/f_cycles.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/f_cycles.png" alt="f_cycles">
-        </a>
-        <figcaption>f_cycles</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/f_eevee.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/f_eevee.png" alt="f_eevee">
-        </a>
-        <figcaption>f_eevee</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/f_eevee2.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/f_eevee2.png" alt="f_eevee2">
-        </a>
-        <figcaption>f_eevee2</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/night_test.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/night_test.png" alt="night_test">
-        </a>
-        <figcaption>night_test</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/p_walls.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/p_walls.png" alt="p_walls">
-        </a>
-        <figcaption>p_walls</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/pv_hall.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/pv_hall.png" alt="pv_hall">
-        </a>
-        <figcaption>pv_hall</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/pv_overview.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/pv_overview.png" alt="pv_overview">
-        </a>
-        <figcaption>pv_overview</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/pv_prince.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/pv_prince.png" alt="pv_prince">
-        </a>
-        <figcaption>pv_prince</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/test1.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/test1.png" alt="test1">
-        </a>
-        <figcaption>test1</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/v_agx.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/v_agx.png" alt="v_agx">
-        </a>
-        <figcaption>v_agx</figcaption>
-      </figure>
-      <figure class="shot">
-        <a href="../../projects/bl-mcp-intl-max/renders/v_std.png" target="_blank" rel="noopener">
-          <img loading="lazy" src="../../projects/bl-mcp-intl-max/renders/v_std.png" alt="v_std">
-        </a>
-        <figcaption>v_std</figcaption>
-      </figure>
-</div></div></body></html>
+<div class="stats" id="stats"></div>
+<div class="hint">拖拽旋转 · 滚轮缩放 · 右键平移</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+const stage = document.getElementById('stage')
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+renderer.setSize(innerWidth, innerHeight)
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.toneMapping = THREE.NeutralToneMapping || THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 0.98
+stage.appendChild(renderer.domElement)
+
+const scene = new THREE.Scene()
+const sky = new THREE.Color('#dfe8ea')
+scene.fog = new THREE.Fog(sky, 220, 620)
+window.__DEBUG = (m) => { window.__M = m; }
+
+const pmrem = new THREE.PMREMGenerator(renderer)
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+
+const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.5, 2000)
+camera.position.set(58, 38, 74)
+
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.enableDamping = true
+controls.dampingFactor = 0.06
+controls.autoRotate = true
+controls.autoRotateSpeed = 0.55
+controls.maxPolarAngle = Math.PI * 0.495
+controls.minDistance = 12
+
+// 渐变天穹（模型自带的天穹导出时已剔除）
+const skyUniforms = {
+  uTop: { value: new THREE.Color('#9dbdd2') },
+  uBottom: { value: new THREE.Color('#fbeed6') },
+}
+const skyDome = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 32, 20),
+  new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false, fog: false,
+    uniforms: skyUniforms,
+    vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    fragmentShader: `uniform vec3 uTop; uniform vec3 uBottom; varying vec3 vP;
+      void main(){ float h = clamp(vP.y * 0.5 + 0.5, 0.0, 1.0); gl_FragColor = vec4(mix(uBottom, uTop, pow(h, 0.85)), 1.0); }`,
+  })
+)
+skyDome.scale.setScalar(4000)
+scene.add(skyDome)
+
+// 光：半球 + 主光（唯一投影）
+scene.add(new THREE.HemisphereLight('#fdf6e8', '#8e9c94', 0.30))
+const sun = new THREE.DirectionalLight('#fff2da', 1.15)
+sun.position.set(86, 58, 66)
+sun.castShadow = true
+sun.shadow.mapSize.set(2048, 2048)
+const sc = sun.shadow.camera
+sc.left = -90; sc.right = 90; sc.top = 90; sc.bottom = -90; sc.near = 1; sc.far = 320
+sun.shadow.bias = -0.0006
+sun.shadow.normalBias = 0.6
+scene.add(sun)
+scene.add(new THREE.DirectionalLight('#dfe8ff', 0.18).translateX(-70).translateY(20).translateZ(-60))
+
+
+const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/libs/draco/')
+const loader = new GLTFLoader().setDRACOLoader(draco)
+
+let model = null
+let wire = false
+
+loader.load('model.glb', (gltf) => {
+  model = gltf.scene
+  model.traverse((o) => {
+    if (o.isMesh) {
+      o.castShadow = true
+      o.receiveShadow = true
+      if (o.material) {
+        o.material.envMapIntensity = 0.35
+      }
+    }
+  })
+  scene.add(model)
+  window.__M = model; window.__S = scene; window.__C = camera;
+
+  // 用顶点分布算包围球，避免太阳/萤火这类远处小物件把取景拉飞
+  const pts = []
+  model.traverse((o) => {
+    if (!o.isMesh || !o.geometry) return
+    const p = o.geometry.attributes.position
+    if (!p) return
+    const step = Math.max(1, Math.floor(p.count / 400))
+    for (let i = 0; i < p.count; i += step) {
+      pts.push(new THREE.Vector3().fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld))
+    }
+  })
+  const center = new THREE.Vector3()
+  pts.forEach((v) => center.add(v))
+  center.divideScalar(Math.max(1, pts.length))
+  const dists = pts.map((v) => v.distanceTo(center)).sort((a, b) => a - b)
+  const radius = Math.max(4, dists[Math.floor(dists.length * 0.965)] || 10)
+
+  model.position.sub(center)
+  const dist = radius * 2.5
+  camera.position.set(dist * 0.66, radius * 0.62, dist * 0.86)
+  camera.near = radius / 60
+  camera.far = radius * 60
+  camera.updateProjectionMatrix()
+  controls.target.set(0, 0, 0)
+  controls.minDistance = radius * 0.9
+  controls.maxDistance = radius * 8
+  skyDome.scale.setScalar(radius * 12)
+  scene.fog.color.set('#e9eef0')
+  scene.fog.near = radius * 6
+  scene.fog.far = radius * 18
+  controls.update()
+
+  let tris = 0
+  model.traverse(o => { if (o.isMesh && o.geometry) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3 })
+  document.getElementById('stats').innerHTML =
+    `${13277} 个对象 · ${Math.round(tris / 1000)}k 三角面<br>GLB · ${10.2} MB`
+
+  document.getElementById('loading').classList.add('done')
+}, (e) => {
+  if (e.total) {
+    document.getElementById('loading').textContent =
+      `正在载入模型… ${Math.round(e.loaded / e.total * 100)}%`
+  }
+}, (err) => {
+  document.getElementById('loading').textContent = '模型加载失败：' + err
+})
+
+document.getElementById('spin').onclick = (e) => {
+  controls.autoRotate = !controls.autoRotate
+  e.currentTarget.classList.toggle('on', controls.autoRotate)
+}
+document.getElementById('wire').onclick = (e) => {
+  wire = !wire
+  model && model.traverse(o => { if (o.isMesh && o.material) o.material.wireframe = wire })
+  e.currentTarget.classList.toggle('on', wire)
+}
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight
+  camera.updateProjectionMatrix()
+  renderer.setSize(innerWidth, innerHeight)
+})
+;(function loop() {
+  requestAnimationFrame(loop)
+  controls.update()
+  renderer.render(scene, camera)
+})()
+</script>
+</body>
+</html>

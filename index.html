@@ -59,7 +59,14 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .controls{position:sticky;top:0;z-index:30;margin-top:10px;padding:14px 0 12px;
   background:linear-gradient(180deg,rgba(250,246,238,.97) 62%,rgba(250,246,238,.86) 100%);
   backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.ctrl-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.ctrl-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.fold{width:28px;height:28px;flex:0 0 auto;border-radius:8px;border:1px solid var(--line);background:#fffdf8;
+  color:var(--ink-2);cursor:pointer;display:grid;place-items:center;padding:0;transition:.15s}
+.fold:hover{border-color:var(--gold);color:var(--ink)}
+.fold svg{width:11px;height:11px;transition:transform .22s ease}
+.controls.folded .fold svg{transform:rotate(-90deg)}
+.controls.folded .chips{display:none}
+.controls.folded{padding-bottom:10px}
 .search{position:relative;flex:1 1 300px;min-width:220px}
 .search input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--line);border-radius:999px;
   background:#fffdf8;font-size:14px;color:var(--ink);outline:none;transition:.18s}
@@ -77,7 +84,7 @@ select{padding:9px 12px;border:1px solid var(--line);border-radius:999px;backgro
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#faf6ee}
 .chip .n{opacity:.55;margin-left:4px;font-size:11px}
 .count{font-size:12px;color:var(--ink-3);margin-left:auto;white-space:nowrap}
-.clear{border:none;background:none;color:var(--gold);font-size:12px;cursor:pointer;text-decoration:underline;padding:0;order:99;margin-left:auto}
+.clear{border:none;background:none;color:var(--gold);font-size:12px;cursor:pointer;text-decoration:underline;padding:0;margin-left:auto;font-family:inherit}
 
 /* ---------- grid ---------- */
 main{padding:26px 0 60px}
@@ -149,32 +156,79 @@ footer code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;b
   </header>
 
   <section class="hero">
-    <svg class="island" viewBox="0 0 240 200" fill="none" aria-hidden="true">
-      <!-- 云 -->
-      <path d="M18 176c-6 0-10-3-10-7s4-7 10-7c1-5 6-8 12-8s11 3 12 8c5 0 9 3 9 7s-4 7-9 7z" fill="#efe6d6" opacity=".85"/>
-      <path d="M196 44c-5 0-9-3-9-7s4-7 9-7c1-4 6-7 11-7s10 3 11 7c5 0 8 3 8 7s-3 7-8 7z" fill="#e7edf0" opacity=".85"/>
-      <!-- 岛体：上表面 -->
-      <ellipse cx="120" cy="112" rx="78" ry="21" fill="#f3ead9" stroke="#c9b28a" stroke-width="1.3"/>
-      <!-- 岛体：下方悬岩 -->
-      <path d="M44 116c8 26 36 48 76 64 38-18 66-40 76-64z" fill="#e6d8bd"/>
-      <path d="M44 116c8 26 36 48 76 64 38-18 66-40 76-64" stroke="#c9b28a" stroke-width="1.3"/>
-      <path d="M84 130c6 14 20 28 36 38M158 130c-6 14-20 28-36 38" stroke="#cdb995" stroke-width=".9" opacity=".7"/>
-      <!-- 瀑布 -->
-      <path d="M156 126c2 14 1 28-2 42" stroke="#a9c4d2" stroke-width="2.4" stroke-linecap="round" opacity=".7"/>
+    <svg class="island" viewBox="0 0 280 240" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="rock" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#efe2c9"/><stop offset=".55" stop-color="#e3d2b4"/><stop offset="1" stop-color="#cdb894"/>
+        </linearGradient>
+        <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#c7d2b2"/><stop offset="1" stop-color="#a8b995"/>
+        </linearGradient>
+        <linearGradient id="keep" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#fbf3e3"/><stop offset="1" stop-color="#f0e2c8"/>
+        </linearGradient>
+      </defs>
+
+      <!-- 远云 -->
+      <g opacity=".55" fill="#f7f0e2">
+        <ellipse cx="52" cy="150" rx="34" ry="10"/>
+        <ellipse cx="236" cy="96" rx="27" ry="8"/>
+        <ellipse cx="86" cy="46" rx="21" ry="6.5"/>
+      </g>
+      <ellipse cx="228" cy="56" rx="9" ry="2.6" fill="#d8c9ae" opacity=".5"/>
+      <ellipse cx="60" cy="192" rx="12" ry="3.2" fill="#d8c9ae" opacity=".45"/>
+
+      <!-- 岛体岩基 -->
+      <path d="M44 124c26 8 58 12 96 12s70-4 96-12c-8 20-20 34-34 46-14 12-30 22-46 34-8 6-10 10-16 10s-8-4-16-10c-16-12-32-22-46-34-14-12-26-26-34-46Z" fill="url(#rock)"/>
+      <path d="M44 124c26 8 58 12 96 12s70-4 96-12-42 14-96 14-96-14-96-14Z" fill="#d9c8a8" opacity=".5"/>
+      <g stroke="#c2ac88" stroke-width="1" opacity=".7">
+        <path d="M70 146c22 10 46 14 70 14s48-4 70-14"/>
+        <path d="M86 164c16 8 34 11 54 11s38-3 54-11"/>
+        <path d="M104 182c10 5 22 7 36 7s26-2 36-7"/>
+      </g>
+      <!-- 岛尖与瀑布 -->
+      <path d="M140 216c-2 8-4 12-4 12" stroke="#c2ac88" stroke-width="1.2"/>
+      <path d="M198 132c2 16 3 34 1 52" stroke="#a9c4d2" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+
+      <!-- 草甸顶面 -->
+      <path d="M44 124c26-14 58-21 96-21s70 7 96 21c-26 12-58 18-96 18s-70-6-96-18Z" fill="url(#grass)"/>
+      <path d="M44 124c26-14 58-21 96-21s70 7 96 21" stroke="#c3b08c" stroke-width="1.2"/>
+
+      <!-- 城墙与角楼 -->
+      <path d="M96 108V88h-8V76h8V70h6v6h6v-6h6v6h6v-6h6v12h-6v4h6v6h6v-6h6v12h-6v4h6v6h6v-6h6v12h-6v4h8v10H96Z" fill="url(#keep)" stroke="#cdb894" stroke-width="1.1" stroke-linejoin="round" opacity=".95"/>
+      <path d="M92 116h96v8H92z" fill="#f4e9d4" stroke="#cdb894" stroke-width="1"/>
+
       <!-- 主楼 -->
-      <path d="M98 66h20v46H98z" fill="#fbf4e6" stroke="#c9b28a" stroke-width="1.2"/>
-      <path d="M95 66l13-15 13 15z" fill="#b5625f" opacity=".82"/>
-      <path d="M122 80h18v32h-18z" fill="#fbf4e6" stroke="#c9b28a" stroke-width="1.2"/>
-      <path d="M119.8 80l11.2-11 11.2 11z" fill="#b5625f" opacity=".62"/>
-      <path d="M80 90h12v22H80z" fill="#fbf4e6" stroke="#c9b28a" stroke-width="1.2"/>
-      <path d="M78.5 90l7.5-8 7.5 8z" fill="#b5625f" opacity=".45"/>
-      <!-- 窗与旗 -->
-      <rect x="105" y="78" width="5" height="9" rx="2.5" fill="#c9a06a" opacity=".7"/>
-      <path d="M108 51v-10l11 3.5-11 3.5" fill="#c9a227" opacity=".85"/>
+      <rect x="126" y="60" width="28" height="50" fill="url(#keep)" stroke="#cdb894" stroke-width="1.2"/>
+      <path d="M120 60l20-26 20 26z" fill="#c98b7a" stroke="#b0715f" stroke-width="1" stroke-linejoin="round"/>
+      <path d="M140 34v-9" stroke="#b0715f" stroke-width="1.2"/>
+      <path d="M140 25l10 3-10 3z" fill="#c9a227" opacity=".9"/>
+      <!-- 左塔 -->
+      <rect x="98" y="82" width="17" height="28" fill="url(#keep)" stroke="#cdb894" stroke-width="1.2"/>
+      <path d="M94 82l12.5-15L119 82z" fill="#c98b7a" stroke="#b0715f" stroke-width="1" stroke-linejoin="round"/>
+      <!-- 右塔 -->
+      <rect x="163" y="78" width="17" height="32" fill="url(#keep)" stroke="#cdb894" stroke-width="1.2"/>
+      <path d="M159 78l12.5-15L184 78z" fill="#b5625f" stroke="#9a504d" stroke-width="1" stroke-linejoin="round"/>
+      <!-- 窗与门 -->
+      <g fill="#a98a5e" opacity=".65">
+        <rect x="137" y="70" width="6" height="10" rx="3"/>
+        <rect x="103" y="92" width="5" height="8" rx="2.5"/>
+        <rect x="169" y="90" width="5" height="8" rx="2.5"/>
+        <path d="M133 110v-9a7 7 0 0 1 14 0v9z"/>
+      </g>
       <!-- 树 -->
-      <path d="M66 110l4.5-10 4.5 10z" fill="#8fa384" opacity=".85"/>
-      <path d="M146 108l3.5-8 3.5 8z" fill="#8fa384" opacity=".8"/>
-      <circle cx="176" cy="112" r="2.6" fill="#8fa384" opacity=".8"/>
+      <g fill="#8fa384">
+        <path d="M78 118l6-15 6 15z"/><path d="M200 116l5.5-14 5.5 14z"/>
+      </g>
+      <g fill="#7d9273">
+        <path d="M86 120l4.5-11 4.5 11z"/>
+      </g>
+      <!-- 小路 -->
+      <path d="M140 122c6 10 4 20-2 30" stroke="#d8c6a4" stroke-width="2.4" stroke-linecap="round" opacity=".8"/>
+      <!-- 飞鸟 -->
+      <g stroke="#b8a788" stroke-width="1.1" stroke-linecap="round" opacity=".8">
+        <path d="M212 132c3-3 5-3 8 0"/><path d="M222 138c2.4-2.4 4-2.4 6.4 0"/>
+      </g>
     </svg>
     <div class="kicker">One Prompt · 29 Builds · 25 Models</div>
     <h1 class="serif">用同一句提示词，<br>让 25 个模型各造一座<em>云端城堡</em></h1>
@@ -197,6 +251,9 @@ footer code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;b
 <div class="controls">
   <div class="wrap">
     <div class="ctrl-row">
+      <button class="fold" id="fold" aria-expanded="true" title="收起 / 展开筛选（F）">
+        <svg viewBox="0 0 12 12" fill="currentColor"><path d="M1.6 3.4h8.8L6 9.2z"/></svg>
+      </button>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
         <input id="q" type="search" placeholder="搜模型、平台、特征（剖视 / 星夜 / GLB / 村民…）" autocomplete="off">
@@ -209,12 +266,13 @@ footer code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;b
         <option value="effort">按思考强度（高→默认）</option>
         <option value="size">按工程体积</option>
       </select>
+      <button class="clear" id="clear" hidden>清除筛选</button>
       <span class="count" id="count"></span>
     </div>
     <div class="chips" id="kinds"><span class="lbl">载体</span></div>
     <div class="chips" id="providers"><span class="lbl">平台</span></div>
     <div class="chips" id="efforts"><span class="lbl">强度</span></div>
-    <div class="chips" id="families"><span class="lbl">模型</span><button class="clear" id="clear" hidden>清除全部筛选</button></div>
+    <div class="chips" id="families"><span class="lbl">模型</span></div>
   </div>
 </div>
 
@@ -246,7 +304,7 @@ footer code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;b
 </footer>
 
 <script>
-const DATA = [{"id":"astra-max","title":"云屿 · 风栖城堡","provider":"v0","providerLabel":"v0.app","model":"astra（GPT 系）","family":"GPT","effort":"max","effortNote":"","stack":"Next.js · R3F · Drei","tags":["剖视三层","村庄","GLB 导出","手记"],"note":"三层室内可剖开，配套 world.glb 静态模型、预览图与《岛屿手记》。Next 源码在 source/ 下。","entry":"index.html","live":true,"srcFiles":39,"srcKB":4496,"liveKB":6756,"shot":true,"kind":"three"},{"id":"astra-xhigh","title":"星屿 STAR ISLE","provider":"v0","providerLabel":"v0.app","model":"astra（GPT 系）","family":"GPT","effort":"xhigh","effortNote":"","stack":"单文件 HTML · R3F","tags":["离线单文件","剖视","星夜","GLB 导出","明信片"],"note":"开箱即用的离线版：769KB 单文件，含剖视、星夜、自动环游、PNG 明信片与 GLB 导出。","entry":"index.html","live":true,"srcFiles":35,"srcKB":1123,"liveKB":1123,"shot":true,"kind":"three"},{"id":"argon-high","title":"B-612 浮空星屿","provider":"v0","providerLabel":"v0.app","model":"argon（Gemini 4）","family":"Gemini","effort":"high","effortNote":"","stack":"Next.js · Three.js","tags":["悬浮标注","环绕巡航","图鉴","zip 导出"],"note":"悬浮标注 + 环绕巡航 + 城堡百科抽屉，另带 jszip 打包导出。standalone 版可直接跑。","entry":"standalone/index.html","live":true,"srcFiles":12,"srcKB":199,"liveKB":234,"shot":true,"kind":"three"},{"id":"fable5.1-max","title":"浮空岛上的中世纪城堡","provider":"v0","providerLabel":"v0.app","model":"Fable 5.1","family":"Fable","effort":"max","effortNote":"","stack":"Next.js · R3F","tags":["组件化","人物","环境","store"],"note":"组件拆得最规整的一版：城堡、人物、环境、岛屿、可选中物体各自成文件，配 scene-store 与信息面板。","entry":"index.html","live":true,"srcFiles":33,"srcKB":104,"liveKB":12359,"shot":true,"kind":"three"},{"id":"gpt6.1sol-max","title":"云间之境","provider":"v0","providerLabel":"v0.app","model":"GPT-6.1 Sol","family":"GPT","effort":"max","effortNote":"","stack":"Next.js · R3F · GLB","tags":["离线单文件","GLB 模型","手记","星夜"],"note":"导出 castle-interior.glb 与 cloud-castle.glb 两套模型，另附 1.6MB 全内联离线展示页。","entry":"离线展示.html","live":true,"srcFiles":40,"srcKB":16750,"liveKB":18322,"shot":true,"kind":"three"},{"id":"gpt6.1sol-xhigh","title":"风住的地方","provider":"v0","providerLabel":"v0.app","model":"GPT-6.1 Sol","family":"GPT","effort":"xhigh","effortNote":"","stack":"Next.js · R3F · GLB","tags":["野外手记","GLB 加载","地形","建筑"],"note":"「野外手记」式侧栏，场景按 architecture / landscape 分模块，模型走 cloud-castle.glb。","entry":"index.html","live":true,"srcFiles":32,"srcKB":5049,"liveKB":9720,"shot":true,"kind":"three"},{"id":"kimik3-max","title":"浮空岛城堡","provider":"v0","providerLabel":"v0.app","model":"Kimi K3","family":"Kimi","effort":"max","effortNote":"","stack":"Next.js · R3F","tags":["天穹","室内","人物","地表"],"note":"场景切成城堡、室内、人物、天穹、地表、周边六个场景模块，配热点组件。","entry":"index.html","live":true,"srcFiles":24,"srcKB":226,"liveKB":12500,"shot":true,"kind":"three"},{"id":"opus5.5-max","title":"星辰城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Opus 5.5","family":"Claude","effort":"max","effortNote":"","stack":"Next.js · Three.js","tags":["模块最多","剖视","导览","standalone"],"note":"lib/castle 下 13 个模块（布局、地形、植被、室内、引擎分离），另带 esbuild 打包的 standalone 版。","entry":"standalone/index.html","live":true,"srcFiles":45,"srcKB":1072,"liveKB":1076,"shot":true,"kind":"three"},{"id":"opus5.5-xhigh","title":"云上城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Opus 5.5","family":"Claude","effort":"xhigh","effortNote":"","stack":"Next.js · R3F","tags":["组件化","热点注册表","相机模块","面板"],"note":"最「工程化」的一版：独立 camera 模块 + hotspot 注册表 + 分层面板，全部 TSX 组件。","entry":"index.html","live":true,"srcFiles":38,"srcKB":289,"liveKB":9984,"shot":true,"kind":"three"},{"id":"opus5.5-high","title":"星屿城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Opus 5.5","family":"Claude","effort":"high","effortNote":"","stack":"单文件 HTML · Three.js","tags":["单文件","图鉴","剖视主堡","昼夜"],"note":"127KB 单文件，左侧图鉴点条目飞镜头、内部条目自动开剖视；另存 Next.js 版本源码。","entry":"index.html","live":true,"srcFiles":15,"srcKB":379,"liveKB":379,"shot":true,"kind":"three"},{"id":"sonnet5.5-max","title":"小王子的浮空城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Sonnet 5.5","family":"Claude","effort":"max","effortNote":"","stack":"TypeScript · esbuild","tags":["四层剖开","图书馆","玫瑰房","天文台","小龙"],"note":"四层城堡整体剖开（厨房 / 王座大厅 / 图书馆 / 玫瑰房 / 天文台），配村庄、雪山与洞穴小龙；TS 源码经 esbuild 打成 castle.js。","entry":"index.html","live":true,"srcFiles":19,"srcKB":817,"liveKB":817,"shot":true,"kind":"three"},{"id":"modelds1017-high","title":"星海上的城堡","provider":"ms","providerLabel":"ModelScope 魔搭","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"high","effortNote":"","stack":"原生 ES Module · Three.js","tags":["星海","模块化源码","本地服务器"],"note":"纯手写 ES Module，src 下按城堡/室内/人物/环境/岛屿拆文件；因 ES Module 限制需静态服务器（仓库里带了启动脚本）。","entry":"index.html","live":true,"srcFiles":31,"srcKB":1572,"liveKB":1553,"shot":true,"kind":"three"},{"id":"modelqwen3.8flash-high","title":"小王子的石头王国","provider":"ms","providerLabel":"ModelScope 魔搭","model":"Qwen 3.8 Flash","family":"Qwen","effort":"high","effortNote":"","stack":"单文件 HTML","tags":["剖视","村民","人物","单文件"],"note":"单文件 HTML，剖视与村民、人物都做了；附两张全景/剖视预览图。","entry":"index.html","live":true,"srcFiles":3,"srcKB":528,"liveKB":54,"shot":true,"kind":"three"},{"id":"ocdsv4.1-high","title":"浮空岛 · 中世纪城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1","family":"DeepSeek","effort":"high","effortNote":"","stack":"原生 JS · Three.js","tags":["自动环绕","昼夜","人物","standalone"],"note":"src 按 castle/island/terrain/sky/props/characters 拆分，另带 tools/build.mjs 打包与 standalone.html。","entry":"index.html","live":true,"srcFiles":15,"srcKB":457,"liveKB":451,"shot":true,"kind":"three"},{"id":"ocdsv4.1f-max","title":"小王子与浮空城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1 Flash","family":"DeepSeek","effort":"max","effortNote":"","stack":"单文件 HTML","tags":["单文件","剖面","村民","人物"],"note":"整份作品压在一个 HTML 里，剖面、村民、人物都在，是最小的一个工程（84KB）。","entry":"little-prince-castle.html","live":true,"srcFiles":1,"srcKB":84,"liveKB":168,"shot":true,"kind":"three"},{"id":"ocds1017-high","title":"星尘城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"high","effortNote":"","stack":"原生 JS · Three.js","tags":["已打包","剖面","成片截图"],"note":"JS 已打成 dist/app.js 单包，js/ 下保留可读源码；final/ 有 6 张成片截图（总览 + 五个房间）。","entry":"index.html","live":true,"srcFiles":19,"srcKB":3467,"liveKB":2163,"shot":true,"kind":"three"},{"id":"ocds1017-max","title":"云上城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"max","effortNote":"","stack":"原生 JS · Three.js","tags":["已打包","庭院","室内","地形"],"note":"同模型 max 档，模块按 castle / courtyard / interior / nature / sky / terrain 拆得更细。","entry":"index.html","live":true,"srcFiles":17,"srcKB":861,"liveKB":858,"shot":true,"kind":"three"},{"id":"traeqwen3.8f-xhigh","title":"浮空岛 · 中世纪城堡","provider":"trae","providerLabel":"Trae Code","model":"Qwen 3.8 Flash","family":"Qwen","effort":"xhigh","effortNote":"","stack":"单文件 HTML","tags":["单文件","剖面","导览","人物"],"note":"Trae Code 里跑出的单文件版本，剖面与导览都在——本批体积最小的工程（32KB）。","entry":"castle_island.html","live":true,"srcFiles":1,"srcKB":32,"liveKB":63,"shot":true,"kind":"three"},{"id":"wbds1017-xhigh","title":"浮空岛上的城堡","provider":"wb","providerLabel":"WorkBuddy","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"max","effortNote":"文件夹标 xhigh，实为 max","stack":"单文件 HTML · Three.js","tags":["剖面","黄昏","人物","本地 three"],"note":"WorkBuddy 内的 DS V4.1 Flash 1017 作品，剖面 + 黄昏，three.module.js 已本地化。","entry":"index.html","live":true,"srcFiles":5,"srcKB":6383,"liveKB":1350,"shot":true,"kind":"three"},{"id":"wbglm5.3flash-xhigh","title":"小王子的浮空城堡","provider":"wb","providerLabel":"WorkBuddy","model":"GLM 5.3 Flash","family":"GLM","effort":"max","effortNote":"文件夹标 xhigh，实为 max","stack":"单文件 HTML · Three.js","tags":["全内联","昼夜","自动环绕","GLB 导出"],"note":"751KB 全内联单文件，昼夜切换、自动环绕与 GLB 导出齐全。","entry":"小王子的浮空城堡.html","live":true,"srcFiles":5,"srcKB":1672,"liveKB":2188,"shot":true,"kind":"three"},{"id":"wbhy4preview-high","title":"云端城堡","provider":"wb","providerLabel":"WorkBuddy","model":"Hunyuan 4 Preview","family":"Hunyuan","effort":"high","effortNote":"","stack":"单文件 HTML · Three.js","tags":["剖面","昼夜","图鉴","自动环绕"],"note":"剖面 + 昼夜 + 图鉴 + 自动环绕；vendor 里带了本地 three.module.js。","entry":"index.html","live":true,"srcFiles":2,"srcKB":1379,"liveKB":1379,"shot":true,"kind":"three"},{"id":"wbminimaxm3.1flash-max","title":"浮空岛上的城堡","provider":"wb","providerLabel":"WorkBuddy","model":"MiniMax M3.1 Flash","family":"MiniMax","effort":"max","effortNote":"","stack":"原生 JS · Three.js","tags":["纹理模块","剖视","校验脚本"],"note":"把纹理单独拆成 textures.js；目录里还留着 .verify 下的校验脚本（射线检测、像素比对、截图）。","entry":"index.html","live":true,"srcFiles":19,"srcKB":1419,"liveKB":1406,"shot":true,"kind":"three"},{"id":"wbmimo2.6fp","title":"小王子的浮空城堡","provider":"wb","providerLabel":"WorkBuddy","model":"MiMo 2.6 FP","family":"MiMo","effort":"default","effortNote":"","stack":"单文件 HTML · Three.js","tags":["雨雪天气","导览","剖面","自动环绕"],"note":"唯一带雨雪天气切换的一版，导览与剖面都在；本地 lib 目录带 three.min.js。","entry":"castle.html","live":true,"srcFiles":7,"srcKB":3798,"liveKB":792,"shot":true,"kind":"three"},{"id":"wbstep5preview-high","title":"云端城堡","provider":"wb","providerLabel":"WorkBuddy","model":"Step 5 Preview","family":"Step","effort":"high","effortNote":"","stack":"单文件 HTML · Three.js","tags":["剖视最全","CSS2D 标签","人物志","QA 截图"],"note":"剖视做得最细的一版（7 处剖视相关逻辑），CSS2DRenderer 做人物标签，qa/ 里留了 10 张过程截图。","entry":"index.html","live":true,"srcFiles":15,"srcKB":10227,"liveKB":1368,"shot":true,"kind":"three"},{"id":"arenakibitz","title":"云上玫瑰堡","provider":"arena","providerLabel":"Arena · Kibitz","model":"Kibitz（疑似 Kimi K3.1）","family":"Kimi","effort":"default","effortNote":"","stack":"Vite · React · Three.js","tags":["居民作息","天气","岛志界面","单文件构建"],"note":"Arena 平台 Kibitz 模型的作品：居民有作息、天气会变，界面走「立体岛志」；vite-plugin-singlefile 打成单文件。","entry":"index.html","live":true,"srcFiles":17,"srcKB":272,"liveKB":907,"shot":true,"kind":"three"},{"id":"bl-mcp-cn-max","title":"浮空城堡 · MCP 程序化","kind":"blender","provider":"wb","providerLabel":"WorkBuddy","model":"WorkBuddy（Blender）","family":"WorkBuddy","effort":"max","effortNote":"","edition":"国内版","client":"mcp-for-blender","stack":"Blender 5.1.1 · EEVEE","tags":["MCP",".blend","程序化生成","过程预览 14 张"],"note":"国内版 WorkBuddy 走 mcp-for-blender 插件，在已打开的 Blender 里逐条下发 bpy 代码生成。castle/ 是完整生成脚本，render/ 里 3 张定稿 + 14 张过程预览。","renders":17,"blend":"未命名.blend","hero":"castle/render/03_great_hall.png","srcFiles":25,"srcKB":24795,"shot":true},{"id":"bl-mcp-intl-max","title":"浮空城堡 · 国际版 max","kind":"blender","provider":"wb","providerLabel":"WorkBuddy","model":"WorkBuddy（Blender）","family":"WorkBuddy","effort":"max","effortNote":"","edition":"国际版","client":"mcp-for-blender","stack":"Blender 5.1.1 · EEVEE","tags":["MCP",".blend","分步脚本 25 个","多机位"],"note":"国际版 max 档。脚本按「场景 / 岛 / 城墙 / 主堡 / 室内 / 礼拜堂 / 庭院 / 自然 / 人物」分十步，另有 11 个 w* 迭代脚本记录调光与水体调试过程；渲染图含多个机位与剖面对照。","renders":40,"blend":"浮空城堡_小王子.blend","hero":"renders/CAM_01_全景.png","srcFiles":90,"srcKB":40552,"shot":true},{"id":"bl-mcp-intl-high","title":"浮空城堡 · 国际版 high","kind":"blender","provider":"wb","providerLabel":"WorkBuddy","model":"WorkBuddy（Blender）","family":"WorkBuddy","effort":"high","effortNote":"","edition":"国际版","client":"mcp-for-blender","stack":"Blender 5.1.1 · EEVEE","tags":["MCP",".blend","1301 对象","23.2 万面","设计说明"],"note":"国际版 high 档。1301 个对象 / 23.2 万三角面 / 74 个全程序化材质 / 9 台相机 + 一个 240 帧环绕转台；附《浮空城堡_设计说明》逐段讲岛体、城堡、室内、人物。","renders":9,"blend":"浮空城堡_小王子.blend","hero":"renders/01_全景.png","srcFiles":24,"srcKB":20952,"shot":true},{"id":"bl-agent-cn-max","title":"浮空城堡 · Bridge Agent","kind":"blender","provider":"wb","providerLabel":"WorkBuddy","model":"WorkBuddy（Blender）","family":"WorkBuddy","effort":"max","effortNote":"","edition":"国内版","client":"blender-bridge-agent","stack":"Blender 5.1.1 · EEVEE","tags":["Bridge Agent",".blend","无生成脚本"],"note":"国内版走 blender-bridge-agent（Blender Agent Bridge 插件）。只交出成品 .blend + 六张定稿渲染 + 设计说明，没有中间脚本——这是它和 MCP 那三份最大的区别。","renders":6,"blend":"浮空城堡_小王子.blend","hero":"renders/01_全景.png","srcFiles":8,"srcKB":16498,"shot":true}];
+const DATA = [{"id":"astra-max","title":"云屿 · 风栖城堡","provider":"v0","providerLabel":"v0.app","model":"astra（GPT 系）","family":"GPT","effort":"max","effortNote":"","stack":"Next.js · R3F · Drei","tags":["剖视三层","村庄","GLB 导出","手记"],"note":"三层室内可剖开，配套 world.glb 静态模型、预览图与《岛屿手记》。Next 源码在 source/ 下。","entry":"index.html","live":true,"srcFiles":39,"srcKB":4496,"liveKB":6756,"shot":true,"kind":"three"},{"id":"astra-xhigh","title":"星屿 STAR ISLE","provider":"v0","providerLabel":"v0.app","model":"astra（GPT 系）","family":"GPT","effort":"xhigh","effortNote":"","stack":"单文件 HTML · R3F","tags":["离线单文件","剖视","星夜","GLB 导出","明信片"],"note":"开箱即用的离线版：769KB 单文件，含剖视、星夜、自动环游、PNG 明信片与 GLB 导出。","entry":"index.html","live":true,"srcFiles":35,"srcKB":1123,"liveKB":1123,"shot":true,"kind":"three"},{"id":"argon-high","title":"B-612 浮空星屿","provider":"v0","providerLabel":"v0.app","model":"argon（Gemini 4）","family":"Gemini","effort":"high","effortNote":"","stack":"Next.js · Three.js","tags":["悬浮标注","环绕巡航","图鉴","zip 导出"],"note":"悬浮标注 + 环绕巡航 + 城堡百科抽屉，另带 jszip 打包导出。standalone 版可直接跑。","entry":"standalone/index.html","live":true,"srcFiles":12,"srcKB":199,"liveKB":234,"shot":true,"kind":"three"},{"id":"fable5.1-max","title":"浮空岛上的中世纪城堡","provider":"v0","providerLabel":"v0.app","model":"Fable 5.1","family":"Fable","effort":"max","effortNote":"","stack":"Next.js · R3F","tags":["组件化","人物","环境","store"],"note":"组件拆得最规整的一版：城堡、人物、环境、岛屿、可选中物体各自成文件，配 scene-store 与信息面板。","entry":"index.html","live":true,"srcFiles":33,"srcKB":104,"liveKB":12359,"shot":true,"kind":"three"},{"id":"gpt6.1sol-max","title":"云间之境","provider":"v0","providerLabel":"v0.app","model":"GPT-6.1 Sol","family":"GPT","effort":"max","effortNote":"","stack":"Next.js · R3F · GLB","tags":["离线单文件","GLB 模型","手记","星夜"],"note":"导出 castle-interior.glb 与 cloud-castle.glb 两套模型，另附 1.6MB 全内联离线展示页。","entry":"离线展示.html","live":true,"srcFiles":40,"srcKB":16750,"liveKB":18322,"shot":true,"kind":"three"},{"id":"gpt6.1sol-xhigh","title":"风住的地方","provider":"v0","providerLabel":"v0.app","model":"GPT-6.1 Sol","family":"GPT","effort":"xhigh","effortNote":"","stack":"Next.js · R3F · GLB","tags":["野外手记","GLB 加载","地形","建筑"],"note":"「野外手记」式侧栏，场景按 architecture / landscape 分模块，模型走 cloud-castle.glb。","entry":"index.html","live":true,"srcFiles":32,"srcKB":5049,"liveKB":9720,"shot":true,"kind":"three"},{"id":"kimik3-max","title":"浮空岛城堡","provider":"v0","providerLabel":"v0.app","model":"Kimi K3","family":"Kimi","effort":"max","effortNote":"","stack":"Next.js · R3F","tags":["天穹","室内","人物","地表"],"note":"场景切成城堡、室内、人物、天穹、地表、周边六个场景模块，配热点组件。","entry":"index.html","live":true,"srcFiles":24,"srcKB":226,"liveKB":12500,"shot":true,"kind":"three"},{"id":"opus5.5-max","title":"星辰城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Opus 5.5","family":"Claude","effort":"max","effortNote":"","stack":"Next.js · Three.js","tags":["模块最多","剖视","导览","standalone"],"note":"lib/castle 下 13 个模块（布局、地形、植被、室内、引擎分离），另带 esbuild 打包的 standalone 版。","entry":"standalone/index.html","live":true,"srcFiles":45,"srcKB":1072,"liveKB":1076,"shot":true,"kind":"three"},{"id":"opus5.5-xhigh","title":"云上城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Opus 5.5","family":"Claude","effort":"xhigh","effortNote":"","stack":"Next.js · R3F","tags":["组件化","热点注册表","相机模块","面板"],"note":"最「工程化」的一版：独立 camera 模块 + hotspot 注册表 + 分层面板，全部 TSX 组件。","entry":"index.html","live":true,"srcFiles":38,"srcKB":289,"liveKB":9984,"shot":true,"kind":"three"},{"id":"opus5.5-high","title":"星屿城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Opus 5.5","family":"Claude","effort":"high","effortNote":"","stack":"单文件 HTML · Three.js","tags":["单文件","图鉴","剖视主堡","昼夜"],"note":"127KB 单文件，左侧图鉴点条目飞镜头、内部条目自动开剖视；另存 Next.js 版本源码。","entry":"index.html","live":true,"srcFiles":15,"srcKB":379,"liveKB":379,"shot":true,"kind":"three"},{"id":"sonnet5.5-max","title":"小王子的浮空城堡","provider":"v0","providerLabel":"v0.app","model":"Claude Sonnet 5.5","family":"Claude","effort":"max","effortNote":"","stack":"TypeScript · esbuild","tags":["四层剖开","图书馆","玫瑰房","天文台","小龙"],"note":"四层城堡整体剖开（厨房 / 王座大厅 / 图书馆 / 玫瑰房 / 天文台），配村庄、雪山与洞穴小龙；TS 源码经 esbuild 打成 castle.js。","entry":"index.html","live":true,"srcFiles":19,"srcKB":817,"liveKB":817,"shot":true,"kind":"three"},{"id":"modelds1017-high","title":"星海上的城堡","provider":"ms","providerLabel":"ModelScope 魔搭","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"high","effortNote":"","stack":"原生 ES Module · Three.js","tags":["星海","模块化源码","本地服务器"],"note":"纯手写 ES Module，src 下按城堡/室内/人物/环境/岛屿拆文件；因 ES Module 限制需静态服务器（仓库里带了启动脚本）。","entry":"index.html","live":true,"srcFiles":31,"srcKB":1572,"liveKB":1553,"shot":true,"kind":"three"},{"id":"modelqwen3.8flash-high","title":"小王子的石头王国","provider":"ms","providerLabel":"ModelScope 魔搭","model":"Qwen 3.8 Flash","family":"Qwen","effort":"high","effortNote":"","stack":"单文件 HTML","tags":["剖视","村民","人物","单文件"],"note":"单文件 HTML，剖视与村民、人物都做了；附两张全景/剖视预览图。","entry":"index.html","live":true,"srcFiles":3,"srcKB":528,"liveKB":54,"shot":true,"kind":"three"},{"id":"ocdsv4.1-high","title":"浮空岛 · 中世纪城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1","family":"DeepSeek","effort":"high","effortNote":"","stack":"原生 JS · Three.js","tags":["自动环绕","昼夜","人物","standalone"],"note":"src 按 castle/island/terrain/sky/props/characters 拆分，另带 tools/build.mjs 打包与 standalone.html。","entry":"index.html","live":true,"srcFiles":15,"srcKB":457,"liveKB":451,"shot":true,"kind":"three"},{"id":"ocdsv4.1f-max","title":"小王子与浮空城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1 Flash","family":"DeepSeek","effort":"max","effortNote":"","stack":"单文件 HTML","tags":["单文件","剖面","村民","人物"],"note":"整份作品压在一个 HTML 里，剖面、村民、人物都在，是最小的一个工程（84KB）。","entry":"little-prince-castle.html","live":true,"srcFiles":1,"srcKB":84,"liveKB":168,"shot":true,"kind":"three"},{"id":"ocds1017-high","title":"星尘城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"high","effortNote":"","stack":"原生 JS · Three.js","tags":["已打包","剖面","成片截图"],"note":"JS 已打成 dist/app.js 单包，js/ 下保留可读源码；final/ 有 6 张成片截图（总览 + 五个房间）。","entry":"index.html","live":true,"srcFiles":19,"srcKB":3467,"liveKB":2163,"shot":true,"kind":"three"},{"id":"ocds1017-max","title":"云上城堡","provider":"oc","providerLabel":"opencode","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"max","effortNote":"","stack":"原生 JS · Three.js","tags":["已打包","庭院","室内","地形"],"note":"同模型 max 档，模块按 castle / courtyard / interior / nature / sky / terrain 拆得更细。","entry":"index.html","live":true,"srcFiles":17,"srcKB":861,"liveKB":858,"shot":true,"kind":"three"},{"id":"traeqwen3.8f-xhigh","title":"浮空岛 · 中世纪城堡","provider":"trae","providerLabel":"Trae Code","model":"Qwen 3.8 Flash","family":"Qwen","effort":"xhigh","effortNote":"","stack":"单文件 HTML","tags":["单文件","剖面","导览","人物"],"note":"Trae Code 里跑出的单文件版本，剖面与导览都在——本批体积最小的工程（32KB）。","entry":"castle_island.html","live":true,"srcFiles":1,"srcKB":32,"liveKB":63,"shot":true,"kind":"three"},{"id":"wbds1017-xhigh","title":"浮空岛上的城堡","provider":"wb","providerLabel":"WorkBuddy","model":"DeepSeek V4.1 Flash 1017","family":"DeepSeek","effort":"max","effortNote":"文件夹标 xhigh，实为 max","stack":"单文件 HTML · Three.js","tags":["剖面","黄昏","人物","本地 three"],"note":"WorkBuddy 内的 DS V4.1 Flash 1017 作品，剖面 + 黄昏，three.module.js 已本地化。","entry":"index.html","live":true,"srcFiles":5,"srcKB":6383,"liveKB":1350,"shot":true,"kind":"three"},{"id":"wbglm5.3flash-xhigh","title":"小王子的浮空城堡","provider":"wb","providerLabel":"WorkBuddy","model":"GLM 5.3 Flash","family":"GLM","effort":"max","effortNote":"文件夹标 xhigh，实为 max","stack":"单文件 HTML · Three.js","tags":["全内联","昼夜","自动环绕","GLB 导出"],"note":"751KB 全内联单文件，昼夜切换、自动环绕与 GLB 导出齐全。","entry":"小王子的浮空城堡.html","live":true,"srcFiles":5,"srcKB":1672,"liveKB":2188,"shot":true,"kind":"three"},{"id":"wbhy4preview-high","title":"云端城堡","provider":"wb","providerLabel":"WorkBuddy","model":"Hunyuan 4 Preview","family":"Hunyuan","effort":"high","effortNote":"","stack":"单文件 HTML · Three.js","tags":["剖面","昼夜","图鉴","自动环绕"],"note":"剖面 + 昼夜 + 图鉴 + 自动环绕；vendor 里带了本地 three.module.js。","entry":"index.html","live":true,"srcFiles":2,"srcKB":1379,"liveKB":1379,"shot":true,"kind":"three"},{"id":"wbminimaxm3.1flash-max","title":"浮空岛上的城堡","provider":"wb","providerLabel":"WorkBuddy","model":"MiniMax M3.1 Flash","family":"MiniMax","effort":"max","effortNote":"","stack":"原生 JS · Three.js","tags":["纹理模块","剖视","校验脚本"],"note":"把纹理单独拆成 textures.js；目录里还留着 .verify 下的校验脚本（射线检测、像素比对、截图）。","entry":"index.html","live":true,"srcFiles":19,"srcKB":1419,"liveKB":1406,"shot":true,"kind":"three"},{"id":"wbmimo2.6fp","title":"小王子的浮空城堡","provider":"wb","providerLabel":"WorkBuddy","model":"MiMo 2.6 FP","family":"MiMo","effort":"default","effortNote":"","stack":"单文件 HTML · Three.js","tags":["雨雪天气","导览","剖面","自动环绕"],"note":"唯一带雨雪天气切换的一版，导览与剖面都在；本地 lib 目录带 three.min.js。","entry":"castle.html","live":true,"srcFiles":7,"srcKB":3798,"liveKB":792,"shot":true,"kind":"three"},{"id":"wbstep5preview-high","title":"云端城堡","provider":"wb","providerLabel":"WorkBuddy","model":"Step 5 Preview","family":"Step","effort":"high","effortNote":"","stack":"单文件 HTML · Three.js","tags":["剖视最全","CSS2D 标签","人物志","QA 截图"],"note":"剖视做得最细的一版（7 处剖视相关逻辑），CSS2DRenderer 做人物标签，qa/ 里留了 10 张过程截图。","entry":"index.html","live":true,"srcFiles":15,"srcKB":10227,"liveKB":1368,"shot":true,"kind":"three"},{"id":"arenakibitz","title":"云上玫瑰堡","provider":"arena","providerLabel":"Arena · Kibitz","model":"Kibitz（疑似 Kimi K3.1）","family":"Kimi","effort":"default","effortNote":"","stack":"Vite · React · Three.js","tags":["居民作息","天气","岛志界面","单文件构建"],"note":"Arena 平台 Kibitz 模型的作品：居民有作息、天气会变，界面走「立体岛志」；vite-plugin-singlefile 打成单文件。","entry":"index.html","live":true,"srcFiles":17,"srcKB":272,"liveKB":907,"shot":true,"kind":"three"},{"id":"bl-mcp-cn-max","title":"浮空城堡 · MCP 程序化","kind":"blender","provider":"wb","providerLabel":"WorkBuddy","model":"WorkBuddy（Blender）","family":"WorkBuddy","effort":"max","effortNote":"","edition":"国内版","client":"mcp-for-blender","stack":"Blender 5.1.1 · EEVEE","tags":["MCP",".blend","程序化生成","过程预览 14 张"],"note":"国内版 WorkBuddy 走 mcp-for-blender 插件，在已打开的 Blender 里逐条下发 bpy 代码生成。castle/ 是完整生成脚本，render/ 里 3 张定稿 + 14 张过程预览。 另附一份可交互 GLB（Draco 压缩，浏览器里直接转）。","renders":17,"blend":"未命名.blend","hero":"castle/render/03_great_hall.png","srcFiles":25,"srcKB":24795,"shot":true,"model3d":{"nodes":46,"tris":185583,"mb":0.8}},{"id":"bl-mcp-intl-max","title":"浮空城堡 · 国际版 max","kind":"blender","provider":"wb","providerLabel":"WorkBuddy","model":"WorkBuddy（Blender）","family":"WorkBuddy","effort":"max","effortNote":"","edition":"国际版","client":"mcp-for-blender","stack":"Blender 5.1.1 · EEVEE","tags":["MCP",".blend","分步脚本 25 个","多机位"],"note":"国际版 max 档。脚本按「场景 / 岛 / 城墙 / 主堡 / 室内 / 礼拜堂 / 庭院 / 自然 / 人物」分十步，另有 11 个 w* 迭代脚本记录调光与水体调试过程；渲染图含多个机位与剖面对照。 另附一份可交互 GLB（Draco 压缩，浏览器里直接转）。","renders":40,"blend":"浮空城堡_小王子.blend","hero":"renders/CAM_01_全景.png","srcFiles":90,"srcKB":40552,"shot":true,"model3d":{"nodes":13277,"tris":750734,"mb":10.2}},{"id":"bl-mcp-intl-high","title":"浮空城堡 · 国际版 high","kind":"blender","provider":"wb","providerLabel":"WorkBuddy","model":"WorkBuddy（Blender）","family":"WorkBuddy","effort":"high","effortNote":"","edition":"国际版","client":"mcp-for-blender","stack":"Blender 5.1.1 · EEVEE","tags":["MCP",".blend","1301 对象","23.2 万面","设计说明"],"note":"国际版 high 档。1301 个对象 / 23.2 万三角面 / 74 个全程序化材质 / 9 台相机 + 一个 240 帧环绕转台；附《浮空城堡_设计说明》逐段讲岛体、城堡、室内、人物。 另附一份可交互 GLB（Draco 压缩，浏览器里直接转）。","renders":9,"blend":"浮空城堡_小王子.blend","hero":"renders/01_全景.png","srcFiles":24,"srcKB":20952,"shot":true,"model3d":{"nodes":1278,"tris":208084,"mb":2}},{"id":"bl-agent-cn-max","title":"浮空城堡 · Bridge Agent","kind":"blender","provider":"wb","providerLabel":"WorkBuddy","model":"WorkBuddy（Blender）","family":"WorkBuddy","effort":"max","effortNote":"","edition":"国内版","client":"blender-bridge-agent","stack":"Blender 5.1.1 · EEVEE","tags":["Bridge Agent",".blend","无生成脚本"],"note":"国内版走 blender-bridge-agent（Blender Agent Bridge 插件）。只交出成品 .blend + 六张定稿渲染 + 设计说明，没有中间脚本——这是它和 MCP 那三份最大的区别。 另附一份可交互 GLB（Draco 压缩，浏览器里直接转）。","renders":6,"blend":"浮空城堡_小王子.blend","hero":"renders/01_全景.png","srcFiles":8,"srcKB":16498,"shot":true,"model3d":{"nodes":1300,"tris":361324,"mb":2.8}}];
 
 const EFFORT_LABEL = { default: '默认', high: 'high', xhigh: 'xhigh', max: 'max' };
 const EFFORT_ORDER = { max: 0, xhigh: 1, high: 2, default: 3 };
@@ -321,7 +379,7 @@ function card(d) {
   const src = `https://github.com/greenwoodpro/cloud-castle-gallery/tree/main/projects/${d.id}`;
   const live = `live/${d.id}/`;
   const color = FAMILY_COLOR[d.family] || '#5d5348';
-  const meta2 = isBl ? `${d.edition} · ${d.client} · 渲染图 ${d.renders} 张` : d.stack;
+  const meta2 = isBl ? `${d.edition} · ${d.client} · 3D ${Math.round((d.model3d?.tris||0)/1000)}k 面 · 渲染图 ${d.renders} 张` : d.stack;
   return `<article class="card">
     <a class="thumb" href="${live}" target="_blank" rel="noopener">
       ${d.shot ? `<img loading="lazy" src="assets/thumbs/${d.id}.jpg" alt="${d.title} 预览">` : `<div class="noimg">暂无截图</div>`}
@@ -331,14 +389,14 @@ function card(d) {
       <div class="meta">
         <span class="badge b-${d.provider}">${d.providerLabel}</span>
         ${isBl ? `<span class="badge b-blend">Blender</span>` : ''}
-        <span class="model" style="color:${color}">${d.model}</span>
+        <span class="model" style="color:${color}">${isBl ? d.edition : d.model}</span>
         <span class="badge m-effort ${d.effort}">${EFFORT_LABEL[d.effort] || d.effort}${d.effortNote ? '*' : ''}</span>
       </div>
       <div class="tags">${d.tags.slice(0, 5).map(t => `<span class="tag">${t}</span>`).join('')}</div>
       <p class="note">${d.note}</p>
       <div class="meta"><span class="m-id">${d.id}</span><span class="m-id">· ${meta2}</span></div>
       <div class="actions">
-        <a class="btn primary" href="${live}" target="_blank" rel="noopener">${isBl ? '看渲染图' : '运行'}</a>
+        <a class="btn primary" href="${live}" target="_blank" rel="noopener">${isBl ? '看 3D 模型' : '运行'}</a>
         <a class="btn" href="${src}" target="_blank" rel="noopener">源码</a>
       </div>
     </div>
@@ -390,9 +448,22 @@ $('#clear').addEventListener('click', () => {
   document.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', 'false'));
   render();
 });
+const controlsEl = document.querySelector('.controls')
+const foldBtn = $('#fold')
+if (localStorage.getItem('cc-fold') === '1') {
+  controlsEl.classList.add('folded'); foldBtn.setAttribute('aria-expanded', 'false')
+}
+foldBtn.addEventListener('click', () => {
+  const folded = controlsEl.classList.toggle('folded')
+  foldBtn.setAttribute('aria-expanded', String(!folded))
+  localStorage.setItem('cc-fold', folded ? '1' : '0')
+  // 收起时把滚动位置稍微拉回去，避免刚被遮住的内容又跳
+  if (!folded) window.scrollBy({ top: 0 })
+})
 document.addEventListener('keydown', e => {
   if (e.key === '/' && document.activeElement !== $('#q')) { e.preventDefault(); $('#q').focus(); }
   if (e.key === 'Escape' && document.activeElement === $('#q')) { $('#q').value = ''; state.q = ''; render(); $('#q').blur(); }
+  if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey && document.activeElement.tagName !== 'INPUT') foldBtn.click();
 });
 </script>
 </body>
