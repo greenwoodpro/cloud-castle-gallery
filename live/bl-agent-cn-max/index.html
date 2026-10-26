@@ -75,7 +75,7 @@ renderer.setSize(innerWidth, innerHeight)
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.toneMapping = THREE.NeutralToneMapping || THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 0.98
+renderer.toneMappingExposure = 0.95
 stage.appendChild(renderer.domElement)
 
 const scene = new THREE.Scene()
@@ -137,13 +137,24 @@ let wire = false
 
 loader.load('model.glb', (gltf) => {
   model = gltf.scene
+  // 这几份模型的原生配色在 Neutral 曲线下会整体发奶白：压亮度、补饱和（共享材质只处理一次）
+  const graded = new Set()
+  const grade = (m) => {
+    if (!m || graded.has(m.uuid)) return
+    graded.add(m.uuid)
+    m.envMapIntensity = 0.30
+    if (m.color) {
+      const hsl = {}
+      m.color.getHSL(hsl, THREE.SRGBColorSpace)
+      m.color.setHSL(hsl.h, Math.min(1, hsl.s * 1.15), hsl.l * 0.88, THREE.SRGBColorSpace)
+    }
+  }
   model.traverse((o) => {
     if (o.isMesh) {
       o.castShadow = true
       o.receiveShadow = true
-      if (o.material) {
-        o.material.envMapIntensity = 0.35
-      }
+      if (Array.isArray(o.material)) o.material.forEach(grade)
+      else grade(o.material)
     }
   })
   scene.add(model)
