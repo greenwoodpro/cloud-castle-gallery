@@ -151,6 +151,32 @@
   "kind": "three"
  },
  {
+  "id": "gpt6.1sol-ultra",
+  "title": "云上来信",
+  "provider": "codex",
+  "providerLabel": "Codex",
+  "model": "GPT-6.1 Sol",
+  "family": "GPT",
+  "effort": "xhigh",
+  "effortNote": "",
+  "stack": "Vite · 原生 Three.js",
+  "tags": [
+   "可探索",
+   "室内剖面",
+   "八位居民",
+   "手记",
+   "环境音"
+  ],
+  "note": "xhigh 档开多子代理跑出来的版本：5 个 JS 模块拆成城堡／地貌／生活／交互，八位居民各有原创故事，屋顶能揭开看室内，还能切黄昏与星夜。",
+  "entry": "index.html",
+  "live": true,
+  "srcFiles": 17,
+  "srcKB": 754,
+  "liveKB": 610,
+  "shot": true,
+  "kind": "three"
+ },
+ {
   "id": "kimik3-max",
   "title": "浮空岛城堡",
   "provider": "v0",

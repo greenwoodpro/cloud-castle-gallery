@@ -74,25 +74,26 @@
 | 4 | [`fable5.1-max`](projects/fable5.1-max) | v0.app | Fable 5.1 | max | 浮空岛上的中世纪城堡 | Next.js · R3F | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/fable5.1-max/) |
 | 5 | [`gpt6.1sol-max`](projects/gpt6.1sol-max) | v0.app | GPT-6.1 Sol | max | 云间之境 | Next.js · R3F · GLB | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/gpt6.1sol-max/) |
 | 6 | [`gpt6.1sol-xhigh`](projects/gpt6.1sol-xhigh) | v0.app | GPT-6.1 Sol | xhigh | 风住的地方 | Next.js · R3F · GLB | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/gpt6.1sol-xhigh/) |
-| 7 | [`kimik3-max`](projects/kimik3-max) | v0.app | Kimi K3 | max | 浮空岛城堡 | Next.js · R3F | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/kimik3-max/) |
-| 8 | [`opus5.5-max`](projects/opus5.5-max) | v0.app | Claude Opus 5.5 | max | 星辰城堡 | Next.js · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/opus5.5-max/) |
-| 9 | [`opus5.5-xhigh`](projects/opus5.5-xhigh) | v0.app | Claude Opus 5.5 | xhigh | 云上城堡 | Next.js · R3F | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/opus5.5-xhigh/) |
-| 10 | [`opus5.5-high`](projects/opus5.5-high) | v0.app | Claude Opus 5.5 | high | 星屿城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/opus5.5-high/) |
-| 11 | [`sonnet5.5-max`](projects/sonnet5.5-max) | v0.app | Claude Sonnet 5.5 | max | 小王子的浮空城堡 | TypeScript · esbuild | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/sonnet5.5-max/) |
-| 12 | [`modelds1017-high`](projects/modelds1017-high) | ModelScope 魔搭 | DeepSeek V4.1 Flash 1017 | high | 星海上的城堡 | 原生 ES Module · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/modelds1017-high/) |
-| 13 | [`modelqwen3.8flash-high`](projects/modelqwen3.8flash-high) | ModelScope 魔搭 | Qwen 3.8 Flash | high | 小王子的石头王国 | 单文件 HTML | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/modelqwen3.8flash-high/) |
-| 14 | [`ocdsv4.1-high`](projects/ocdsv4.1-high) | opencode | DeepSeek V4.1 | high | 浮空岛 · 中世纪城堡 | 原生 JS · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/ocdsv4.1-high/) |
-| 15 | [`ocdsv4.1f-max`](projects/ocdsv4.1f-max) | opencode | DeepSeek V4.1 Flash | max | 小王子与浮空城堡 | 单文件 HTML | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/ocdsv4.1f-max/) |
-| 16 | [`ocds1017-high`](projects/ocds1017-high) | opencode | DeepSeek V4.1 Flash 1017 | high | 星尘城堡 | 原生 JS · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/ocds1017-high/) |
-| 17 | [`ocds1017-max`](projects/ocds1017-max) | opencode | DeepSeek V4.1 Flash 1017 | max | 云上城堡 | 原生 JS · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/ocds1017-max/) |
-| 18 | [`traeqwen3.8f-xhigh`](projects/traeqwen3.8f-xhigh) | Trae Code | Qwen 3.8 Flash | xhigh | 浮空岛 · 中世纪城堡 | 单文件 HTML | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/traeqwen3.8f-xhigh/) |
-| 19 | [`wbds1017-xhigh`](projects/wbds1017-xhigh) | WorkBuddy | DeepSeek V4.1 Flash 1017 | max * | 浮空岛上的城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbds1017-xhigh/) |
-| 20 | [`wbglm5.3flash-xhigh`](projects/wbglm5.3flash-xhigh) | WorkBuddy | GLM 5.3 Flash | max * | 小王子的浮空城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbglm5.3flash-xhigh/) |
-| 21 | [`wbhy4preview-high`](projects/wbhy4preview-high) | WorkBuddy | Hunyuan 4 Preview | high | 云端城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbhy4preview-high/) |
-| 22 | [`wbminimaxm3.1flash-max`](projects/wbminimaxm3.1flash-max) | WorkBuddy | MiniMax M3.1 Flash | max | 浮空岛上的城堡 | 原生 JS · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbminimaxm3.1flash-max/) |
-| 23 | [`wbmimo2.6fp`](projects/wbmimo2.6fp) | WorkBuddy | MiMo 2.6 FP | 默认 | 小王子的浮空城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbmimo2.6fp/) |
-| 24 | [`wbstep5preview-high`](projects/wbstep5preview-high) | WorkBuddy | Step 5 Preview | high | 云端城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbstep5preview-high/) |
-| 25 | [`arenakibitz`](projects/arenakibitz) | Arena · Kibitz | Kibitz（疑似 Kimi K3.1） | 默认 | 云上玫瑰堡 | Vite · React · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/arenakibitz/) |
+| 7 | [`gpt6.1sol-ultra`](projects/gpt6.1sol-ultra) | Codex | GPT-6.1 Sol | xhigh | 云上来信 | Vite · 原生 Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/gpt6.1sol-ultra/) |
+| 8 | [`kimik3-max`](projects/kimik3-max) | v0.app | Kimi K3 | max | 浮空岛城堡 | Next.js · R3F | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/kimik3-max/) |
+| 9 | [`opus5.5-max`](projects/opus5.5-max) | v0.app | Claude Opus 5.5 | max | 星辰城堡 | Next.js · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/opus5.5-max/) |
+| 10 | [`opus5.5-xhigh`](projects/opus5.5-xhigh) | v0.app | Claude Opus 5.5 | xhigh | 云上城堡 | Next.js · R3F | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/opus5.5-xhigh/) |
+| 11 | [`opus5.5-high`](projects/opus5.5-high) | v0.app | Claude Opus 5.5 | high | 星屿城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/opus5.5-high/) |
+| 12 | [`sonnet5.5-max`](projects/sonnet5.5-max) | v0.app | Claude Sonnet 5.5 | max | 小王子的浮空城堡 | TypeScript · esbuild | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/sonnet5.5-max/) |
+| 13 | [`modelds1017-high`](projects/modelds1017-high) | ModelScope 魔搭 | DeepSeek V4.1 Flash 1017 | high | 星海上的城堡 | 原生 ES Module · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/modelds1017-high/) |
+| 14 | [`modelqwen3.8flash-high`](projects/modelqwen3.8flash-high) | ModelScope 魔搭 | Qwen 3.8 Flash | high | 小王子的石头王国 | 单文件 HTML | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/modelqwen3.8flash-high/) |
+| 15 | [`ocdsv4.1-high`](projects/ocdsv4.1-high) | opencode | DeepSeek V4.1 | high | 浮空岛 · 中世纪城堡 | 原生 JS · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/ocdsv4.1-high/) |
+| 16 | [`ocdsv4.1f-max`](projects/ocdsv4.1f-max) | opencode | DeepSeek V4.1 Flash | max | 小王子与浮空城堡 | 单文件 HTML | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/ocdsv4.1f-max/) |
+| 17 | [`ocds1017-high`](projects/ocds1017-high) | opencode | DeepSeek V4.1 Flash 1017 | high | 星尘城堡 | 原生 JS · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/ocds1017-high/) |
+| 18 | [`ocds1017-max`](projects/ocds1017-max) | opencode | DeepSeek V4.1 Flash 1017 | max | 云上城堡 | 原生 JS · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/ocds1017-max/) |
+| 19 | [`traeqwen3.8f-xhigh`](projects/traeqwen3.8f-xhigh) | Trae Code | Qwen 3.8 Flash | xhigh | 浮空岛 · 中世纪城堡 | 单文件 HTML | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/traeqwen3.8f-xhigh/) |
+| 20 | [`wbds1017-xhigh`](projects/wbds1017-xhigh) | WorkBuddy | DeepSeek V4.1 Flash 1017 | max * | 浮空岛上的城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbds1017-xhigh/) |
+| 21 | [`wbglm5.3flash-xhigh`](projects/wbglm5.3flash-xhigh) | WorkBuddy | GLM 5.3 Flash | max * | 小王子的浮空城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbglm5.3flash-xhigh/) |
+| 22 | [`wbhy4preview-high`](projects/wbhy4preview-high) | WorkBuddy | Hunyuan 4 Preview | high | 云端城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbhy4preview-high/) |
+| 23 | [`wbminimaxm3.1flash-max`](projects/wbminimaxm3.1flash-max) | WorkBuddy | MiniMax M3.1 Flash | max | 浮空岛上的城堡 | 原生 JS · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbminimaxm3.1flash-max/) |
+| 24 | [`wbmimo2.6fp`](projects/wbmimo2.6fp) | WorkBuddy | MiMo 2.6 FP | 默认 | 小王子的浮空城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbmimo2.6fp/) |
+| 25 | [`wbstep5preview-high`](projects/wbstep5preview-high) | WorkBuddy | Step 5 Preview | high | 云端城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbstep5preview-high/) |
+| 26 | [`arenakibitz`](projects/arenakibitz) | Arena · Kibitz | Kibitz（疑似 Kimi K3.1） | 默认 | 云上玫瑰堡 | Vite · React · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/arenakibitz/) |
 
 ---
 
@@ -135,13 +136,13 @@
 
 **按平台**：v0.app 11 · WorkBuddy 10 · opencode 4 · ModelScope 魔搭 2 · Trae Code 1 · Arena · Kibitz 1
 
-**按模型**：DeepSeek 6 · GPT 4 · Claude 4 · WorkBuddy 4 · Kimi 2 · Qwen 2 · Gemini 1 · Fable 1 · GLM 1 · Hunyuan 1 · MiniMax 1 · MiMo 1 · Step 1
+**按模型**：DeepSeek 6 · GPT 5 · Claude 4 · WorkBuddy 4 · Kimi 2 · Qwen 2 · Gemini 1 · Fable 1 · GLM 1 · Hunyuan 1 · MiniMax 1 · MiMo 1 · Step 1
 
-**按强度**：max 14 · xhigh 4 · high 9 · 默认 2
+**按强度**：max 14 · xhigh 5 · high 9 · 默认 2
 
-**按载体**：three.js 25 · Blender 4
+**按载体**：three.js 26 · Blender 4
 
-**工程源码合计**：162 MB / 636 个文件
+**工程源码合计**：162 MB / 653 个文件
 
 ---
 
@@ -152,7 +153,7 @@
 | 形态 | 数量 | 怎么跑 |
 | --- | --- | --- |
 | 静态 HTML / 原生 ES Module | 15 | 丢进任意静态服务器即可（`live/` 里已经是可直接跑的版本） |
-| Vite + React | 1 | `npm i && npm run build`（`vite-plugin-singlefile` 打成单文件） |
+| Vite + React | 2 | `npm i && npm run build`（`vite-plugin-singlefile` 打成单文件） |
 | Next.js + React Three Fiber | 9 | `npm i && npm run build`，其中 4 个还额外带了作者自己打的 standalone 产物 |
 
 另有 **4 份 Blender 工程**不属于上面任何一类：它们不需要构建，交付物就是 `.blend` + 渲染图 +
@@ -212,4 +213,4 @@ python -m http.server 8080
 
 ---
 
-<sub>Generated 2026-10-25 · 29 件作品 · 162 MB 源码</sub>
+<sub>Generated 2026-10-26 · 30 件作品 · 162 MB 源码</sub>

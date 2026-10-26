@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#eeeae1" />
+    <meta name="description" content="一座可以自由探索的 Three.js 童话浮空岛。走近中世纪城堡、翻开它的房间，认识住在云端的人。" />
+    <title>云端城堡 · 一封来自天空的信</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <main id="app">
+      <div id="scene" aria-label="可用鼠标拖动、滚轮缩放的三维浮空岛"></div>
+      <div class="paper" aria-hidden="true"></div>
+      <header class="header">
+        <a class="brand" href="./" aria-label="云上来信首页"><span class="brand-mark">✧</span><span>云上来信<small>LETTERS FROM ABOVE</small></span></a>
+        <div class="header-right"><span class="edition">一个可以走近的童话 <i></i> Nº 001</span><button id="sound" class="icon-button" title="开启环境音" aria-label="开启环境音" aria-pressed="false"></button><button id="help-button" class="icon-button" title="操作指南" aria-label="操作指南"></button><button id="fullscreen" class="icon-button" title="全屏" aria-label="全屏"></button></div>
+      </header>
+      <section class="intro">
+        <p class="eyebrow"><span></span> THE LITTLE KINGDOM IN THE SKY</p>
+        <h1>云端城堡<span>风住的地方。</span></h1>
+        <p class="intro-copy">把日子过得慢一点，<br>就能听见云朵经过的声音。</p>
+        <button id="explore" class="text-link">翻开这座小小王国 <span>↗</span></button>
+        <div class="intro-line"></div>
+        <p class="coordinates">海拔 ∞ &nbsp; / &nbsp; 永远有风</p>
+      </section>
+      <aside class="right-tools" aria-label="场景工具">
+        <button id="daytime" class="time-button" title="切换暖午、黄昏与星夜"><span id="day-icon"></span><span id="day-label">暖午</span><span class="tiny-chevron">⌄</span></button>
+        <div class="vertical-tools"><button id="zoom-in" class="icon-button" title="放大" aria-label="放大"></button><button id="zoom-out" class="icon-button" title="缩小" aria-label="缩小"></button><span class="tool-rule"></span><button id="home" class="icon-button" title="回到全景" aria-label="回到全景"></button><button id="capture" class="icon-button" title="保存一张明信片" aria-label="保存一张明信片"></button></div>
+        <div class="compass" title="随相机旋转的方位指示"><span>N</span><svg viewBox="0 0 40 40" id="compass-arrow"><path d="M20 5 26 30 20 25 14 30Z" fill="currentColor" opacity=".72"/><path d="M20 5v20l-6 5Z" fill="#faf5e9"/></svg></div>
+      </aside>
+      <div id="landmark-labels" aria-hidden="true"></div>
+      <section id="journal" class="journal" aria-label="王国手记" hidden>
+        <div class="journal-top"><span>FIELD NOTES / 王国手记</span><button id="close-journal" class="icon-button" aria-label="关闭手记"></button></div>
+        <div class="journal-tabs" role="tablist" aria-label="手记分类"><button data-tab="places" role="tab" aria-selected="true">岛屿漫游</button><button data-tab="rooms" role="tab" aria-selected="false">城堡里面</button><button data-tab="people" role="tab" aria-selected="false">云端居民</button></div>
+        <div id="journal-content" class="journal-content"></div>
+        <div class="journal-footer"><span>每一个角落，都有一个小故事。</span><span>✧</span></div>
+      </section>
+      <div class="lower-note"><span class="small-star">✦</span><p>有些地方，<br>只要相信就能抵达。</p><span class="hand-line"></span></div>
+      <footer class="footer">
+        <div class="interaction-hint"><span class="mouse-icon"></span><span>拖动环绕 <i>·</i> 滚轮缩放 <i>·</i> 右键平移</span></div>
+        <nav class="explore-dock" aria-label="探索地点"><button class="dock-item active" data-view="overview"><span class="dock-icon" data-icon="orbit"></span><span>全岛漫游</span></button><span class="dock-divider"></span><button class="dock-item" data-view="castle"><span class="dock-icon" data-icon="castle"></span><span>云端城堡</span></button><button class="dock-item" data-view="village"><span class="dock-icon" data-icon="house"></span><span>风铃村落</span></button><button class="dock-item" data-view="nature"><span class="dock-icon" data-icon="leaf"></span><span>林间与溪流</span></button><button class="dock-item" id="cutaway" aria-pressed="false"><span class="dock-icon" data-icon="layers"></span><span>打开城堡</span></button></nav>
+        <div class="footer-actions"><button id="auto-rotate" class="subtle-button" aria-pressed="false"><span id="rotate-icon"></span><span>缓缓环游</span></button><button id="labels" class="subtle-button" aria-pressed="true">地点标记 <span class="toggle on"></span></button></div>
+      </footer>
+      <div id="toast" role="status" aria-live="polite"></div>
+      <dialog id="help"><button id="close-help" class="icon-button dialog-close" aria-label="关闭操作指南">×</button><p class="eyebrow">A SMALL GUIDE</p><h2>让好奇心带路。</h2><p>这是一座可以从各个方向欣赏的浮空岛。<br>每个按钮都通向一个值得停留的角落。</p><dl><dt>环绕 / 缩放</dt><dd>按住左键拖动 / 滚动滚轮<br>触屏：单指旋转，双指缩放与平移</dd><dt>平移 / 漫游</dt><dd>右键拖动 / 选择地点缓缓飞近<br>开启「缓缓环游」自动欣赏</dd><dt>走进城堡</dt><dd>点击「打开城堡」揭开屋顶与前墙<br>在手记「城堡里面」选择房间</dd><dt>一点小魔法</dt><dd>切换暖午、黄昏与星夜 / 保存明信片<br>点击标记阅读故事 / 空格暂停环游<br>按 F 进入全屏，Esc 关闭手记</dd></dl><button id="start-exploring" class="primary-button">出发，去看看 ↗</button></dialog>
+      <div id="loading"><div class="loading-star">✧</div><p>正在把一座小小王国，放上云端。</p><span>ASSEMBLING A LITTLE WONDER</span></div>
+      <noscript>请启用 JavaScript，以探索这座 Three.js 浮空岛。</noscript>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
