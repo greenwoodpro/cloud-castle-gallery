@@ -1,11 +1,11 @@
 # 云端城堡 · Cloud Castle Gallery
 
-> 一条提示词 × 6 个平台 × 12 个模型 × 25 座浮空城堡
+> 一条提示词 × 7 个平台 × 13 族模型 × 29 座浮空城堡
 > ＋ 4 份同题 Blender 程序化建模（MCP / Bridge Agent）
 
 **在线浏览 → [greenwoodpro.github.io/cloud-castle-gallery](https://greenwoodpro.github.io/cloud-castle-gallery)**
 
-用同一句提示词，让 25 个模型各用 three.js 造一座中世纪欧洲城堡，摆在浮空岛上。
+用同一句提示词，让各家模型各用 three.js 造一座中世纪欧洲城堡，摆在浮空岛上。
 这里是全部作品的**可运行版本**与**完整工程源码**，按平台 / 模型 / 思考强度分类，页面上可以直接搜索筛选。
 
 另外有 4 份不走网页、改用 **Blender** 程序化建模的同题作品（mcp-for-blender 插件 / blender-bridge-agent），
@@ -28,7 +28,7 @@
 ```
 .
 ├── index.html          # 画廊：搜索 / 按平台·模型·强度筛选
-├── data.json           # 29 条结构化元数据（25 个 three.js + 4 个 Blender）
+├── data.json           # 33 条结构化元数据（29 个 three.js + 4 个 Blender）
 ├── projects/           # 原始工程（源码、说明、截图、构建脚本）
 │   └── <工程名>/
 ├── live/               # 可直接打开的静态版本（GitHub Pages 用这一份）
@@ -64,7 +64,7 @@
 
 ---
 
-## three.js 部分（25）
+## three.js 部分（29）
 
 | # | 目录 | 平台 | 模型 | 强度 | 作品 | 技术栈 | 预览 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -94,6 +94,9 @@
 | 24 | [`wbmimo2.6fp`](projects/wbmimo2.6fp) | WorkBuddy | MiMo 2.6 FP | 默认 | 小王子的浮空城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbmimo2.6fp/) |
 | 25 | [`wbstep5preview-high`](projects/wbstep5preview-high) | WorkBuddy | Step 5 Preview | high | 云端城堡 | 单文件 HTML · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/wbstep5preview-high/) |
 | 26 | [`arenakibitz`](projects/arenakibitz) | Arena · Kibitz | Kibitz（疑似 Kimi K3.1） | 默认 | 云上玫瑰堡 | Vite · React · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/arenakibitz/) |
+| 27 | [`hy4-high`](projects/hy4-high) | WorkBuddy | Hunyuan 4（混元 4） | high | 云端城堡 · 岛上札记 | 原生 ES Module · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/hy4-high/) |
+| 28 | [`qwen3.8max-xhigh`](projects/qwen3.8max-xhigh) | v0.app | Qwen 3.8 Max | xhigh | 云上的城堡 | Next.js · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/qwen3.8max-xhigh/) |
+| 29 | [`qwen3.8-2.4T-A95b`](projects/qwen3.8-2.4T-A95b) | v0.app | Qwen 3.8 2.4T A95B | xhigh | 浮空岛上的城堡 | Next.js · Three.js | [▶](https://greenwoodpro.github.io/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/) |
 
 ---
 
@@ -132,29 +135,48 @@
 
 ---
 
+## 两处「岛顶地面」修复
+
+有两份工程的地形顶面**三角面绕序反了**：法线全部朝下（0% 朝上），配上单面材质（`FrontSide`）之后，
+从上方俯视会被背面剔除——**整块地面消失，看到的是岛体岩层的内壁**，城堡像浮在洞口上。
+浏览器里表现为"没有地平面、直接看到内部"。
+
+本仓库把这两处的顶面绕序翻正（法线朝上 100%），场景其余部分未动：
+
+| 目录 | 症状 | 改动 | 实测 |
+| --- | --- | --- | --- |
+| `ocds1017-high` | 岛面 8844 面全部朝下，俯视时地面消失 | `js/scenery.js` 顶面扇面与环带绕序各翻一次，用 esbuild 重新打包 `dist/app.js` | 顶面朝上面片 0% → 100% |
+| `qwen3.8max-xhigh` | `island-surface` 2112 面全部朝下，城堡像浮在洞口上 | `lib/scene/island.ts` 的 `indices.push(a, c, b, b, c, d)` → `(a, b, c, b, d, c)`，重新 `next build` | 顶面朝上面片 0% → 100% |
+
+> 判定方法：在页面里遍历场景，按三角形面积加权统计面法线的 `y` 分量。
+> 同一批里 `qwen3.8-2.4T-A95b` 的作者自己在代码里写了注释改用 `DoubleSide` 绕开这个问题，所以它没有中招。
+> 首页上这两条带红色「已修复」角标，卡片里写了具体改动。
+
+---
+
 ## 统计
 
-**按平台**：v0.app 11 · WorkBuddy 10 · opencode 4 · ModelScope 魔搭 2 · Trae Code 1 · Arena · Kibitz 1
+**按平台**：v0.app 13 · WorkBuddy 11 · opencode 4 · ModelScope 魔搭 2 · Trae Code 1 · Codex 1 · Arena · Kibitz 1
 
-**按模型**：DeepSeek 6 · GPT 5 · Claude 4 · WorkBuddy 4 · Kimi 2 · Qwen 2 · Gemini 1 · Fable 1 · GLM 1 · Hunyuan 1 · MiniMax 1 · MiMo 1 · Step 1
+**按模型**：DeepSeek 6 · GPT 5 · Claude 4 · Qwen 4 · WorkBuddy 4 · Kimi 2 · Hunyuan 2 · Gemini 1 · Fable 1 · GLM 1 · MiniMax 1 · MiMo 1 · Step 1
 
-**按强度**：max 14 · xhigh 5 · high 9 · 默认 2
+**按强度**：max 14 · xhigh 7 · high 10 · 默认 2
 
-**按载体**：three.js 26 · Blender 4
+**按载体**：three.js 29 · Blender 4
 
-**工程源码合计**：162 MB / 653 个文件
+**工程源码合计**：167 MB / 748 个文件
 
 ---
 
 ## 工程形态观察（哪些需要编译）
 
-这 25 个工程的技术形态差异很大，大致分三类：
+这 29 个工程的技术形态差异很大，大致分三类：
 
 | 形态 | 数量 | 怎么跑 |
 | --- | --- | --- |
-| 静态 HTML / 原生 ES Module | 15 | 丢进任意静态服务器即可（`live/` 里已经是可直接跑的版本） |
+| 静态 HTML / 原生 ES Module | 17 | 丢进任意静态服务器即可（`live/` 里已经是可直接跑的版本） |
 | Vite + React | 2 | `npm i && npm run build`（`vite-plugin-singlefile` 打成单文件） |
-| Next.js + React Three Fiber | 9 | `npm i && npm run build`，其中 4 个还额外带了作者自己打的 standalone 产物 |
+| Next.js + React Three Fiber | 11 | `npm i && npm run build`，其中 4 个还额外带了作者自己打的 standalone 产物 |
 
 另有 **4 份 Blender 工程**不属于上面任何一类：它们不需要构建，交付物就是 `.blend` + 渲染图 +
 （部分）生成脚本，直接下载就能在 Blender 5.1 里打开。
@@ -213,4 +235,4 @@ python -m http.server 8080
 
 ---
 
-<sub>Generated 2026-10-26 · 30 件作品 · 162 MB 源码</sub>
+<sub>Generated 2026-11-07 · 33 件作品 · 167 MB 源码</sub>

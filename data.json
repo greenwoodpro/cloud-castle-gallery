@@ -416,14 +416,20 @@
    "剖面",
    "成片截图"
   ],
-  "note": "JS 已打成 dist/app.js 单包，js/ 下保留可读源码；final/ 有 6 张成片截图（总览 + 五个房间）。",
+  "note": "石墙沿山脊生长，蓝灰色尖顶接住晚风；厨房的烟、图书馆的烛火和观星台未熄的灯，在暮色里一层层亮起来。",
   "entry": "index.html",
   "live": true,
   "srcFiles": 19,
   "srcKB": 3467,
   "liveKB": 2163,
   "shot": true,
-  "kind": "three"
+  "kind": "three",
+  "fix": {
+   "date": "2026-11-06",
+   "label": "岛顶地平面修复",
+   "desc": "地形顶面的三角面绕序反了（法线全部朝下），配上单面材质后，从上方看整块地面被背面剔除——只剩岛体岩层的内壁，像被掀了顶。已翻转顶面绕序，法线朝上，草地/土路/花圃恢复。",
+   "metric": "顶面朝上面片 0% → 100%"
+  }
  },
  {
   "id": "ocds1017-max",
@@ -472,6 +478,64 @@
   "srcFiles": 1,
   "srcKB": 32,
   "liveKB": 63,
+  "shot": true,
+  "kind": "three"
+ },
+ {
+  "id": "qwen3.8max-xhigh",
+  "title": "云上的城堡",
+  "provider": "v0",
+  "providerLabel": "v0.app",
+  "model": "Qwen 3.8 Max",
+  "family": "Qwen",
+  "effort": "xhigh",
+  "effortNote": "",
+  "stack": "Next.js · Three.js",
+  "tags": [
+   "五层主堡剖视",
+   "26 个地点",
+   "昼夜滑杆",
+   "自动环绕",
+   "ZIP 下载"
+  ],
+  "fix": {
+   "date": "2026-11-06",
+   "label": "岛顶地平面修复",
+   "desc": "同一个毛病：岛面网格绕序反了，`island-surface` 朝下 100%，单面材质下从上往下看地面整块消失，城堡像浮在洞口上。已翻转绕序并重新构建，法线朝上。",
+   "metric": "顶面朝上面片 0% → 100%"
+  },
+  "note": "五层主堡可整套剖开，26 个编号地点全部可点飞；右侧面板管剖视、吊桥、人物、标注、环绕、昼夜滑杆与像素比。41.9 万三角面，是这批里最重的一份。",
+  "entry": "index.html",
+  "live": true,
+  "srcFiles": 39,
+  "srcKB": 659,
+  "liveKB": 14008,
+  "shot": true,
+  "kind": "three"
+ },
+ {
+  "id": "qwen3.8-2.4T-A95b",
+  "title": "浮空岛上的城堡",
+  "provider": "v0",
+  "providerLabel": "v0.app",
+  "model": "Qwen 3.8 2.4T A95B",
+  "family": "Qwen",
+  "effort": "xhigh",
+  "effortNote": "",
+  "stack": "Next.js · Three.js",
+  "tags": [
+   "视角分类 15 条",
+   "透视模式",
+   "图鉴抽屉",
+   "3D ZIP 下载",
+   "12 万三角面"
+  ],
+  "note": "左侧把 15 个机位按「外观 / 内部」分好类，右侧抽屉配说明；透视模式直接切成线框看结构。岛体倒锥岩层 + 垂根，是这批里唯一把地形做成双面的（作者自己在代码里写了为什么）。",
+  "entry": "index.html",
+  "live": true,
+  "srcFiles": 45,
+  "srcKB": 736,
+  "liveKB": 13885,
   "shot": true,
   "kind": "three"
  },
@@ -547,6 +611,32 @@
   "srcFiles": 2,
   "srcKB": 1379,
   "liveKB": 1379,
+  "shot": true,
+  "kind": "three"
+ },
+ {
+  "id": "hy4-high",
+  "title": "云端城堡 · 岛上札记",
+  "provider": "wb",
+  "providerLabel": "WorkBuddy",
+  "model": "Hunyuan 4（混元 4）",
+  "family": "Hunyuan",
+  "effort": "high",
+  "effortNote": "",
+  "stack": "原生 ES Module · Three.js",
+  "tags": [
+   "图鉴 47 条",
+   "掀屋顶剖面",
+   "昼⇄夜",
+   "13 组人物",
+   "离线可跑"
+  ],
+  "note": "把整座岛做成一本图鉴：构造 16 / 人物 13 / 地形 10 / 环境 8，共 47 条，点条目相机自己飞过去。六个视角预设、可掀屋顶剖面、黄昏⇄星夜、岛体水滴形岩檐。esbuild 打成 IIFE，双击 index.html 就能离线跑。",
+  "entry": "index.html",
+  "live": true,
+  "srcFiles": 20,
+  "srcKB": 3456,
+  "liveKB": 1180,
   "shot": true,
   "kind": "three"
  },

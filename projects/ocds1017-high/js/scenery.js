@@ -189,18 +189,20 @@ export function createIsland(materials) {
     }
   }
 
+  /* 修复：原地形顶面三角面绕序反了（法线全部朝下），单面材质下从上方被背面剔除，
+     整块地面消失、只剩岛体岩层内壁。这里把扇面与环带的绕序都翻一次，法线朝上。 */
   for (let j = 0; j < segments; j++) {
     const a = 1 + j;
     const b = 1 + (j + 1) % segments;
-    indices.push(0, a, b);
+    indices.push(0, b, a);
   }
   for (let i = 0; i < rings - 1; i++) {
     const row0 = 1 + i * segments;
     const row1 = row0 + segments;
     for (let j = 0; j < segments; j++) {
       const j1 = (j + 1) % segments;
-      indices.push(row0 + j, row1 + j, row0 + j1);
-      indices.push(row0 + j1, row1 + j, row1 + j1);
+      indices.push(row0 + j, row0 + j1, row1 + j);
+      indices.push(row0 + j1, row1 + j1, row1 + j);
     }
   }
   const geo = new THREE.BufferGeometry();

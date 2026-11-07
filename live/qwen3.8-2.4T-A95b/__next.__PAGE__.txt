@@ -1,0 +1,29 @@
+1:"$Sreact.fragment"
+2:"/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/3ty_lq2h4_8xm.js"
+3:I[39756,["$2"],"default"]
+4:I[37457,["$2"],"default"]
+5:I[2355,["$2"],"Analytics"]
+9:"/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/37oyh3ub4j-rg.js"
+a:I[5620,["$2","$9"],"CastleViewer"]
+b:I[97367,["$2"],"OutletBoundary"]
+c:"$Sreact.suspense"
+f:"ViewportBoundary"
+10:I[97367,["$2"],"$f"]
+11:"MetadataBoundary"
+12:I[97367,["$2"],"$11"]
+13:I[27201,["$2"],"IconMark"]
+:HL["/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/3l4_1ld70zefb.css","style"]
+:HL["/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/3_5rnnpwgn7kk.css","style"]
+:HL["/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/0zt8cark87kgi.css","style"]
+:HL["/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/1j2gdtc3lo1vq.css","style"]
+7:X
+8:[["children",{"s":"__PAGE__","h":160,"d":{"r":["$","$1","c",{"children":[["$","main",null,{"className":"h-dvh w-full overflow-hidden","children":["$","$La",null,{}]}],[["$","script","script-0",{"src":"/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/37oyh3ub4j-rg.js","async":true}]],["$","$Lb",null,{"children":["$","$c",null,{"name":"Next.MetadataOutlet","children":"$@d"}]}]]}],"p":"$@e","v":null,"s":"$7"}}]]
+0:{"t":{"t":{"s":"","h":80,"d":{"r":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/3l4_1ld70zefb.css","precedence":"next"}],["$","link","1",{"rel":"stylesheet","href":"/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/3_5rnnpwgn7kk.css","precedence":"next"}],["$","link","2",{"rel":"stylesheet","href":"/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/0zt8cark87kgi.css","precedence":"next"}],["$","link","3",{"rel":"stylesheet","href":"/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/1j2gdtc3lo1vq.css","precedence":"next"}],["$","script","script-0",{"src":"/cloud-castle-gallery/live/qwen3.8-2.4T-A95b/_next/static/chunks/3ty_lq2h4_8xm.js","async":true}]],["$","html",null,{"lang":"zh-CN","className":"light bg-background etxuEW_variable IEFbpa_variable exmcDq_variable","children":["$","body",null,{"className":"font-sans antialiased","children":[["$","$L3",null,{"parallelRouterKey":"children","template":["$","$L4",null,{}],"notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]]}],["$","$L5",null,{}]]}]}]]}],"p":"$@6","v":null,"s":"$7"},"c":"$Q8"},"h":{"r":["$","$1","h",{"children":[null,["$","$L10",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"}],["$","meta","2",{"name":"theme-color","content":"#f7f1e6"}],["$","meta","3",{"name":"color-scheme","content":"light"}]]}],["$","$L12",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$c",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"浮空岛上的城堡 · Three.js 中世纪城堡"}],["$","meta","1",{"name":"description","content":"用 Three.js 手绘的一座中世纪欧洲城堡，安放在漂浮的岛屿上。《小王子》的水彩画风，自由视角，可走进主堡四层房间、教堂、内庭，也能看遍岛上的湖泊、瀑布、农田、森林、玫瑰园与村庄。"}],["$","meta","2",{"name":"generator","content":"v0.app"}],["$","meta","3",{"name":"keywords","content":"Three.js,3D,中世纪城堡,浮空岛,小王子,WebGL,城堡内部"}],["$","link","4",{"rel":"icon","href":"/icon-light-32x32.png","media":"(prefers-color-scheme: light)"}],["$","link","5",{"rel":"icon","href":"/icon-dark-32x32.png","media":"(prefers-color-scheme: dark)"}],["$","link","6",{"rel":"icon","href":"/icon.svg","type":"image/svg+xml"}],["$","link","7",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L13","8",{}]]}]}],null]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"p":"$@14","v":null,"s":"$7"}},"a":"$@15","u":"$@16","b":"aInM114uGsAGRWoer_o8g"}
+d:null
+7:300
+16:true
+7:C
+15:0
+6:"$undefined"
+14:"$undefined"
+e:"$undefined"

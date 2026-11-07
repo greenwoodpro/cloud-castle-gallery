@@ -1,0 +1,234 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* 小王子水彩调色板：暮蓝 / 羊皮纸 / 沙岩金 / 陶土玫瑰 / 苔藓绿 */
+@theme {
+  --color-twilight: oklch(0.28 0.05 266);
+  --color-twilight-deep: oklch(0.2 0.048 268);
+  --color-parchment: oklch(0.965 0.026 92);
+  --color-sandstone: oklch(0.87 0.055 88);
+  --color-gold: oklch(0.79 0.115 82);
+  --color-terracotta: oklch(0.66 0.1 35);
+  --color-moss: oklch(0.66 0.075 145);
+  --color-ink: oklch(0.3 0.055 266);
+}
+
+@theme inline {
+  --font-sans: var(--font-noto-sans-sc), 'Noto Sans SC', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-noto-serif-sc), 'Noto Serif SC', ui-serif, Georgia, serif;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  color-scheme: dark;
+  --background: oklch(0.28 0.05 266);
+  --foreground: oklch(0.965 0.02 92);
+  --card: oklch(0.965 0.026 92);
+  --card-foreground: oklch(0.3 0.055 266);
+  --popover: oklch(0.965 0.026 92);
+  --popover-foreground: oklch(0.3 0.055 266);
+  --primary: oklch(0.79 0.115 82);
+  --primary-foreground: oklch(0.26 0.05 266);
+  --secondary: oklch(0.66 0.1 35);
+  --secondary-foreground: oklch(0.975 0.015 92);
+  --muted: oklch(0.37 0.048 266);
+  --muted-foreground: oklch(0.82 0.028 92);
+  --accent: oklch(0.66 0.075 145);
+  --accent-foreground: oklch(0.24 0.04 266);
+  --destructive: oklch(0.64 0.19 25);
+  --border: oklch(0.87 0.045 90 / 22%);
+  --input: oklch(0.87 0.045 90 / 22%);
+  --ring: oklch(0.79 0.115 82);
+  --chart-1: oklch(0.79 0.115 82);
+  --chart-2: oklch(0.66 0.1 35);
+  --chart-3: oklch(0.66 0.075 145);
+  --chart-4: oklch(0.87 0.055 88);
+  --chart-5: oklch(0.55 0.06 266);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.965 0.026 92);
+  --sidebar-foreground: oklch(0.3 0.055 266);
+  --sidebar-primary: oklch(0.66 0.1 35);
+  --sidebar-primary-foreground: oklch(0.975 0.015 92);
+  --sidebar-accent: oklch(0.92 0.035 92);
+  --sidebar-accent-foreground: oklch(0.3 0.055 266);
+  --sidebar-border: oklch(0.87 0.045 90 / 30%);
+  --sidebar-ring: oklch(0.79 0.115 82);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.22 0.048 268);
+  --foreground: oklch(0.965 0.02 92);
+  --card: oklch(0.965 0.026 92);
+  --card-foreground: oklch(0.3 0.055 266);
+  --popover: oklch(0.965 0.026 92);
+  --popover-foreground: oklch(0.3 0.055 266);
+  --primary: oklch(0.79 0.115 82);
+  --primary-foreground: oklch(0.24 0.048 268);
+  --secondary: oklch(0.66 0.1 35);
+  --secondary-foreground: oklch(0.975 0.015 92);
+  --muted: oklch(0.32 0.048 268);
+  --muted-foreground: oklch(0.82 0.028 92);
+  --accent: oklch(0.66 0.075 145);
+  --accent-foreground: oklch(0.22 0.04 268);
+  --destructive: oklch(0.7 0.19 22);
+  --border: oklch(0.87 0.045 90 / 20%);
+  --input: oklch(0.87 0.045 90 / 20%);
+  --ring: oklch(0.79 0.115 82);
+  --chart-1: oklch(0.79 0.115 82);
+  --chart-2: oklch(0.66 0.1 35);
+  --chart-3: oklch(0.66 0.075 145);
+  --chart-4: oklch(0.87 0.055 88);
+  --chart-5: oklch(0.5 0.06 268);
+  --sidebar: oklch(0.965 0.026 92);
+  --sidebar-foreground: oklch(0.3 0.055 266);
+  --sidebar-primary: oklch(0.66 0.1 35);
+  --sidebar-primary-foreground: oklch(0.975 0.015 92);
+  --sidebar-accent: oklch(0.92 0.035 92);
+  --sidebar-accent-foreground: oklch(0.3 0.055 266);
+  --sidebar-border: oklch(0.87 0.045 90 / 30%);
+  --sidebar-ring: oklch(0.79 0.115 82);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply bg-background;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    overscroll-behavior: none;
+  }
+}
+
+@utility paper-grain {
+  position: relative;
+}
+
+/* 水彩纸纹理：细密噪点 + 边缘晕染，叠在羊皮纸面板上 */
+@utility watercolor-surface {
+  background-image:
+    radial-gradient(120% 90% at 12% 8%, oklch(1 0 0 / 55%) 0%, transparent 55%),
+    radial-gradient(90% 80% at 88% 92%, oklch(0.87 0.055 88 / 45%) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E");
+}
+
+/* 手绘描边：轻微不规则的边框阴影，模拟钢笔勾线 */
+@utility ink-edge {
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 45%) inset,
+    0 0 0 1px oklch(0.3 0.055 266 / 14%),
+    0 12px 32px -12px oklch(0.16 0.045 268 / 55%);
+}
+
+@utility scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.87 0.055 88 / 60%) transparent;
+}
+
+/* 3D 场景内的标注热点 */
+.hotspot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform, opacity;
+  pointer-events: auto;
+  transform-origin: center;
+}
+
+.hotspot-dot {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: 1.5px solid oklch(0.965 0.026 92 / 90%);
+  background: oklch(0.66 0.1 35 / 88%);
+  color: oklch(0.975 0.015 92);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.2s ease;
+  box-shadow: 0 0 0 4px oklch(0.66 0.1 35 / 18%);
+}
+
+.hotspot:hover .hotspot-dot,
+.hotspot[data-active='true'] .hotspot-dot {
+  transform: scale(1.22);
+  background: oklch(0.79 0.115 82 / 95%);
+  color: oklch(0.26 0.05 266);
+}
+
+.hotspot-label {
+  position: absolute;
+  left: 28px;
+  top: 50%;
+  translate: 0 -50%;
+  white-space: nowrap;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  background: oklch(0.965 0.026 92 / 92%);
+  color: oklch(0.3 0.055 266);
+  border: 1px solid oklch(0.3 0.055 266 / 12%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.hotspot:hover .hotspot-label,
+.hotspot[data-active='true'] .hotspot-label {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hotspot-dot {
+    transition: none;
+  }
+}
